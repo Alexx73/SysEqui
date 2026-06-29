@@ -1,0 +1,27 @@
+services:
+  redis:
+    image: redis:latest
+    restart: always
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - redis_network
+
+  # redis-insight:
+  #   image: redislabs/redisinsight:latest
+  #   restart: always
+  #   container_name: redis-insight
+  #   ports:
+  #     - "5540:5540"
+  #   environment:
+  #     - REDIS_HOST=redis
+  #     - REDIS_PORT=6379
+  #   networks:
+  #     - redis_network
+  #   depends_on:
+  #     - redis
+
+networks:
+  redis_network:
+    driver: bridge

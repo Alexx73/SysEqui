@@ -1,0 +1,14 @@
+[
+  {
+    "method": "POST",
+    "path": "/users/register"
+  },
+  {
+    "method": "POST",
+    "path": "/users/login"
+  },
+  {
+    "method": "GET",
+    "path": "/"
+  }
+]

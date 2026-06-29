@@ -1,0 +1,64 @@
+{
+  "name": "back_sysequi",
+  "version": "1.0.0",
+  "description": "Proyecto de automatización y gestión de sistemas de equivalencias de materias",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch index.js",
+    "bundev": "bun --watch index.js",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "engines": {
+    "node": "22.14.x"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nachocua/Back_SysEqui.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/nachocua/Back_SysEqui/issues"
+  },
+  "homepage": "https://github.com/nachocua/Back_SysEqui#readme",
+  "dependencies": {
+    "bcrypt": "6.0.0",
+    "cookie-parser": "1.4.7",
+    "cors": "2.8.6",
+    "dotenv": "17.4.2",
+    "express": "5.2.1",
+    "ioredis": "5.10.1",
+    "jsonwebtoken": "9.0.3",
+    "mongoose": "9.6.1",
+    "node-cron": "4.2.1",
+    "swagger-jsdoc": "6.2.8",
+    "swagger-ui-express": "5.0.1",
+    "ua-parser-js": "2.0.9"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@scarf/scarf",
+      "bcrypt"
+    ]
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "eslint": "10.3.0",
+    "eslint-plugin-import": "2.32.0"
+  },
+  "prettier": {
+    "singleQuote": false,
+    "semi": true,
+    "tabWidth": 2,
+    "printWidth": 110,
+    "trailingComma": "all",
+    "bracketSpacing": true,
+    "bracketSameLine": true,
+    "arrowParens": "always",
+    "endOfLine": "crlf"
+  }
+}

@@ -17,15 +17,16 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/nachocua/Back_SysEqui.git"
+    "url": "git+https://github.com/Alexx73/SysEqui.git",
+    "directory": "Back_SysEqui"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/nachocua/Back_SysEqui/issues"
+    "url": "https://github.com/Alexx73/SysEqui/issues"
   },
-  "homepage": "https://github.com/nachocua/Back_SysEqui#readme",
+  "homepage": "https://github.com/Alexx73/SysEqui#readme",
   "dependencies": {
     "bcrypt": "6.0.0",
     "cookie-parser": "1.4.7",

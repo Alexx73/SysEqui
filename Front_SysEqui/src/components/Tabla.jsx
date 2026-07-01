@@ -49,7 +49,7 @@ export default function TablaReutilizable({
                   className="px-5 py-1 text-sm cursor-pointer"
                   onDoubleClick={() => onDobleClickFila?.(fila)}
                   key={`cell-${fila._id || fila.id || filaIndex}-${col.clave || colIndex}`}>
-                  {col.render ? col.render(fila[col.clave], fila) : fila[col.clave]}
+                  {col.render ? col.render(fila[col.clave], fila, filaIndex) : fila[col.clave]}
                 </Table.Cell>
               ))}
 

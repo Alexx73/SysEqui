@@ -17,6 +17,7 @@ const initialForm = {
 
 const dniRegex = /^\d{8}$/;
 const validateDni = (dni) => /^\d{8}$/.test(dni);
+const PAGE_SIZE_OPTIONS = [5, 10, 15, 20];
 
 export default function Profesores() {
   const [form, setForm] = useState(initialForm);
@@ -24,6 +25,8 @@ export default function Profesores() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showToast, setShowToast] = useState("");
   const [mostrarFormCrearUsuario, setMostrarFormCrearUsuario] = useState(false);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(5);
 
   const searchRef = useRef();
 
@@ -36,6 +39,7 @@ export default function Profesores() {
     try {
       const res = await UsersAPI.getAllStaff();
       setProfesores((res.data.staff || []).sort((a, b) => a.lastname.localeCompare(b.lastname)));
+      setPage(1);
     } catch (err) {
       alert("❌ Error al cargar staff", err);
     }
@@ -138,10 +142,16 @@ export default function Profesores() {
     try {
       const res = await UsersAPI.getAllStaff(filters);
       setProfesores((res.data.staff || []).sort((a, b) => a.lastname.localeCompare(b.lastname)));
+      setPage(1);
     } catch (err) {
       setProfesores([]);
     }
   };
+
+  const totalPages = Math.max(1, Math.ceil(profesores.length / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const startIndex = (currentPage - 1) * pageSize;
+  const profesoresPaginados = profesores.slice(startIndex, startIndex + pageSize);
 
   return (
     <div className="max-w-6xl mx-auto p-2 flex flex-col gap-6">
@@ -251,8 +261,9 @@ export default function Profesores() {
       )}
 
       <Tabla
-        datos={Array.isArray(profesores) ? profesores : []}
+        datos={Array.isArray(profesoresPaginados) ? profesoresPaginados : []}
         columnas={[
+          { clave: "counter", titulo: "#", render: (_, __, index) => startIndex + index + 1 },
           { clave: "dni", titulo: "DNI" },
           { clave: "name", titulo: "Nombre" },
           { clave: "lastname", titulo: "Apellido" },
@@ -270,6 +281,42 @@ export default function Profesores() {
         mostrarIconoEditar={true}
         mostrarIconoEliminar={true}
       />
+      {profesores.length > 5 && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-blue-500/30 bg-blue-500/10 p-3">
+          <label className="flex items-center gap-2 text-sm text-gray-400">
+            Mostrar
+            <select
+              value={pageSize}
+              onChange={(event) => {
+                setPageSize(Number(event.target.value));
+                setPage(1);
+              }}
+              className="rounded-md border border-blue-500/50 bg-gray-800 px-2 py-1 text-blue-100 focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400">
+              {PAGE_SIZE_OPTIONS.map((option) => (
+                <option key={option} value={option}>{option}</option>
+              ))}
+            </select>
+            por página
+          </label>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setPage(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="rounded-md border border-blue-500/50 bg-blue-600/20 px-3 py-1 text-sm text-blue-100 transition hover:bg-blue-600/40 disabled:cursor-not-allowed disabled:opacity-40">
+              Anterior
+            </button>
+            <span className="text-sm text-gray-400">Página {currentPage} de {totalPages}</span>
+            <button
+              type="button"
+              onClick={() => setPage(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="rounded-md border border-blue-500/50 bg-blue-600/20 px-3 py-1 text-sm text-blue-100 transition hover:bg-blue-600/40 disabled:cursor-not-allowed disabled:opacity-40">
+              Siguiente
+            </button>
+          </div>
+        </div>
+      )}
       {profesores.length === 0 && (
         <div className="text-center text-lg text-gray-500 dark:text-gray-400 mt-2">
           ⚠️ No se encontraron resultados con los filtros aplicados.

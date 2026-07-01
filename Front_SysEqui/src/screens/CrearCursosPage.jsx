@@ -375,16 +375,7 @@ export default function CrearCursos() {
           color="bg-yellow-300"
           agregarItems={(tipo, items) => items.forEach((item) => agregar(tipo, item))}
         />
-        {/* <ListaSeleccionable
-          titulo="Profesores"
-          elementos={profesoresActivos}
-          addSelect={true}
-          seleccionados={seleccionados.profesores}
-          setSeleccionados={(nuevos) => setSeleccionados((prev) => ({ ...prev, profesores: nuevos }))}
-          tipo="docentesEncargados"
-          color="bg-blue-300"
-          agregarItems={(tipo, items) => items.forEach((item) => agregar(tipo, item))}
-        /> */}
+       
       </div>
 
       <div>

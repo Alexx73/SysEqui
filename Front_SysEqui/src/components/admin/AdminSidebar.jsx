@@ -10,18 +10,17 @@ import {
   Tooltip,
 } from "flowbite-react";
 import {
+  HiBookOpen,
   HiChartPie,
-  HiClipboard,
+  HiCheckCircle,
+  HiClipboardList,
   HiCollection,
-  HiInformationCircle,
-  HiLogin,
-  HiPencil,
+  HiLogout,
+  HiPlusCircle,
   HiSearch,
-  HiShoppingBag,
   HiUsers,
 } from "react-icons/hi";
 import { FaChalkboardTeacher } from "react-icons/fa";
-import { SiGoogleclassroom } from "react-icons/si";
 import { RiMenuFold2Fill } from "react-icons/ri";
 
 import { useState, useRef, useEffect } from "react";
@@ -29,17 +28,17 @@ import { useUser } from "../../context/UserContext";
 import { useNavigate } from "react-router-dom";
 
 const menuItems = [
-  { href: "/admin", icon: HiChartPie, label: "Resumen" },
-  { href: "/listaAlumnos", icon: HiUsers, label: "Lista de Alumnos" },
-  { href: "/asignarEquivalencias", icon: HiShoppingBag, label: "Asignar Equivalencias" },
-  { href: "/validarAlumnos", icon: HiChartPie, label: "Validar Alumnos" },
-  { href: "/crearcurso", icon: SiGoogleclassroom, label: "Crear Curso" },
-  { href: "/administrarcursos", icon: SiGoogleclassroom, label: "Administrar Cursos" },
-  { href: "/listaMaterias", icon: SiGoogleclassroom, label: "Lista de Materias" },
-  { href: "/profesores", icon: FaChalkboardTeacher, label: "Gestión Profesores" },
+  { href: "/admin", icon: HiChartPie, iconClasses: "bg-blue-500/20 text-blue-400", label: "Resumen" },
+  { href: "/listaAlumnos", icon: HiUsers, iconClasses: "bg-cyan-500/20 text-cyan-400", label: "Lista de Alumnos" },
+  { href: "/asignarEquivalencias", icon: HiClipboardList, iconClasses: "bg-violet-500/20 text-violet-400", label: "Asignar Equivalencias" },
+  { href: "/validarAlumnos", icon: HiCheckCircle, iconClasses: "bg-emerald-500/20 text-emerald-400", label: "Validar Alumnos" },
+  { href: "/crearcurso", icon: HiPlusCircle, iconClasses: "bg-sky-500/20 text-sky-400", label: "Crear Curso" },
+  { href: "/administrarcursos", icon: HiCollection, iconClasses: "bg-amber-500/20 text-amber-400", label: "Administrar Cursos" },
+  { href: "/listaMaterias", icon: HiBookOpen, iconClasses: "bg-green-500/20 text-green-400", label: "Lista de Materias" },
+  { href: "/profesores", icon: FaChalkboardTeacher, iconClasses: "bg-rose-500/20 text-rose-400", label: "Gestión Profesores" },
 ];
 
-const extraItems = [{ onClick: "logout", icon: HiPencil, label: "Cerrar Sesión" }];
+const extraItems = [{ onClick: "logout", icon: HiLogout, iconClasses: "bg-red-500/20 text-red-400", label: "Cerrar Sesión" }];
 
 export default function AdminSidebar() {
   const { openLogoutModal } = useUser();
@@ -109,6 +108,13 @@ export default function AdminSidebar() {
   }, [isOpen]);
 
   const renderSidebarItem = (item, index, isExtra = false) => {
+    const ItemIcon = item.icon;
+    const ColoredIcon = () => (
+      <span className={`flex h-9 w-9 items-center justify-center rounded-xl ${item.iconClasses}`}>
+        <ItemIcon className="h-5 w-5" aria-hidden="true" />
+      </span>
+    );
+
     const refCallback = (el) => {
       if (el) itemRefs.current.push(el);
     };
@@ -123,7 +129,7 @@ export default function AdminSidebar() {
       <SidebarItem
         key={index}
         {...commonProps}
-        icon={item.icon}
+        icon={ColoredIcon}
         href={item.href}
         onClick={item.onClick === "logout" ? openLogoutModal : undefined}>
         {item.label}

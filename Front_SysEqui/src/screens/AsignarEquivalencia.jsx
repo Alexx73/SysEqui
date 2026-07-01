@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Button, Card, Select } from "flowbite-react";
+import { Accordion, Button, Card, Select } from "flowbite-react";
 
 import { useMaterias } from "../utils/useMaterias";
 import { useCursosAlumno } from "../utils/useCursosAlumno";
@@ -249,41 +249,67 @@ export default function AsignarEquivalencia() {
 
       {alumnoSeleccionado && (
         <Card className="mt-4">
-          <h3 className="text-xl font-semibold mb-4">Equivalencias pendientes</h3>
           {materiasOrdenadas.length > 0 ? (
-            <TablaReutilizable
-              datos={materiasOrdenadas}
-              columnas={[
-                { clave: "numero", titulo: "#" },
-                { clave: "name", titulo: "Materia" },
-                { clave: "year", titulo: "Año" },
-                { clave: "createdAt", titulo: "Fecha de asignación" },
-              ]}
-              mostrarIconoAprobar={true}
-              mostrarIconoEliminar={true}
-              onAprobar={handleAprobar}
-              onEliminar={handleEliminar}
-            />
+            <Accordion collapseAll>
+              <Accordion.Panel>
+                <Accordion.Title>Equivalencias pendientes</Accordion.Title>
+                <Accordion.Content>
+                  <TablaReutilizable
+                    datos={materiasOrdenadas}
+                    columnas={[
+                      { clave: "numero", titulo: "#" },
+                      { clave: "name", titulo: "Materia" },
+                      { clave: "year", titulo: "Año" },
+                      { clave: "createdAt", titulo: "Fecha de asignación" },
+                    ]}
+                    // mostrarIconoAprobar={true}
+                    mostrarIconoEliminar={true}
+                    onAprobar={handleAprobar}
+                    onEliminar={handleEliminar}
+                  />
+                </Accordion.Content>
+              </Accordion.Panel>
+            </Accordion>
           ) : (
-            <p className="text-gray-400">No tiene equivalencias pendientes.</p>
+            <>
+              <h3 className="text-xl font-semibold mb-4">Equivalencias pendientes</h3>
+              <p className="text-gray-400">No tiene equivalencias pendientes.</p>
+            </>
           )}
         </Card>
       )}
 
-      {cursosDelAlumno.length > 0 && (
-        <Card className="mt-4">
-          <h3 className="text-xl font-semibold mb-4">Cursos del Alumno</h3>
-          <TablaReutilizable
-            datos={cursosDelAlumno.map((curso, i) => ({ ...curso, numero: i + 1 }))}
-            columnas={[
-              { clave: "numero", titulo: "#" },
-              { clave: "nombre", titulo: "Materia" },
-              { clave: "año", titulo: "Año" },
-              { clave: "nota", titulo: "Nota" },
-            ]}
-            mostrarIconoAprobar={true}
-            onAprobar={handleAprobarCurso}
-          />
+      {alumnoSeleccionado && (
+        <Card className="mt-4 border border-blue-500/40 bg-blue-50/50 dark:bg-blue-950/20">
+          {cursosDelAlumno.length > 0 ? (
+            <Accordion className="border-blue-200 dark:border-blue-700">
+              <Accordion.Panel>
+                <Accordion.Title className="text-blue-800 dark:text-blue-200">
+                  Cursos asignados
+                </Accordion.Title>
+                <Accordion.Content>
+                  <TablaReutilizable
+                    datos={cursosDelAlumno.map((curso, i) => ({ ...curso, numero: i + 1 }))}
+                    columnas={[
+                      { clave: "numero", titulo: "#" },
+                      { clave: "nombre", titulo: "Materia" },
+                      { clave: "año", titulo: "Año" },
+                      { clave: "nota", titulo: "Nota" },
+                    ]}
+                    mostrarIconoAprobar={true}
+                    onAprobar={handleAprobarCurso}
+                  />
+                </Accordion.Content>
+              </Accordion.Panel>
+            </Accordion>
+          ) : (
+            <>
+              <h3 className="text-xl font-semibold mb-4 text-blue-800 dark:text-blue-200">
+                Cursos asignados
+              </h3>
+              <p className="text-blue-700/70 dark:text-blue-300/70">No tiene cursos asignados.</p>
+            </>
+          )}
         </Card>
       )}
 

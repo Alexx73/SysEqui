@@ -247,6 +247,29 @@ export default function AsignarEquivalencia() {
         </Card>
       </div>
 
+      {alumnoSeleccionado && (
+        <Card className="mt-4">
+          <h3 className="text-xl font-semibold mb-4">Equivalencias pendientes</h3>
+          {materiasOrdenadas.length > 0 ? (
+            <TablaReutilizable
+              datos={materiasOrdenadas}
+              columnas={[
+                { clave: "numero", titulo: "#" },
+                { clave: "name", titulo: "Materia" },
+                { clave: "year", titulo: "Año" },
+                { clave: "createdAt", titulo: "Fecha de asignación" },
+              ]}
+              mostrarIconoAprobar={true}
+              mostrarIconoEliminar={true}
+              onAprobar={handleAprobar}
+              onEliminar={handleEliminar}
+            />
+          ) : (
+            <p className="text-gray-400">No tiene equivalencias pendientes.</p>
+          )}
+        </Card>
+      )}
+
       {cursosDelAlumno.length > 0 && (
         <Card className="mt-4">
           <h3 className="text-xl font-semibold mb-4">Cursos del Alumno</h3>

@@ -354,18 +354,7 @@ export default function CrearCursos() {
 
       {/* Profesores y Alumnos */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-2 ">
-        {/* Alumnos */}
-        <ListaSeleccionable
-          titulo="Alumnos"
-          elementos={alumnosConPendientes}
-          seleccionados={seleccionados.alumnos}
-          addSelect={true}
-          setSeleccionados={(nuevos) => setSeleccionados((prev) => ({ ...prev, alumnos: nuevos }))}
-          tipo="alumnos"
-          color="bg-yellow-300"
-          agregarItems={(tipo, items) => items.forEach((item) => agregar(tipo, item))}
-        />
-        <ListaSeleccionable
+      <ListaSeleccionable
           titulo="Profesores"
           elementos={profesoresActivos}
           addSelect={true}
@@ -375,6 +364,27 @@ export default function CrearCursos() {
           color="bg-blue-300"
           agregarItems={(tipo, items) => items.forEach((item) => agregar(tipo, item))}
         />
+        {/* Alumnos */}
+        <ListaSeleccionable
+          titulo="Alumnos2"
+          elementos={alumnosConPendientes}
+          seleccionados={seleccionados.alumnos}
+          addSelect={true}
+          setSeleccionados={(nuevos) => setSeleccionados((prev) => ({ ...prev, alumnos: nuevos }))}
+          tipo="alumnos"
+          color="bg-yellow-300"
+          agregarItems={(tipo, items) => items.forEach((item) => agregar(tipo, item))}
+        />
+        {/* <ListaSeleccionable
+          titulo="Profesores"
+          elementos={profesoresActivos}
+          addSelect={true}
+          seleccionados={seleccionados.profesores}
+          setSeleccionados={(nuevos) => setSeleccionados((prev) => ({ ...prev, profesores: nuevos }))}
+          tipo="docentesEncargados"
+          color="bg-blue-300"
+          agregarItems={(tipo, items) => items.forEach((item) => agregar(tipo, item))}
+        /> */}
       </div>
 
       <div>
@@ -406,32 +416,6 @@ export default function CrearCursos() {
             </div>
 
             <div>
-              {/* Alumnos */}
-              <div>
-                <h4 className="font-semibold mb-1">Alumnos:</h4>
-                <div className="grid grid-cols-2 font-bold text-sm mb-1">
-                  <div>Nombre</div>
-                  <div>Dni</div>
-                </div>
-                <ul className="space-y-1">
-                  {curso.alumnos.map((alum) => (
-                    <li
-                      key={alum.dni || index}
-                      className="grid grid-cols-2 items-center bg-gray-600 px-2 py-1 rounded">
-                      <div>{alum.lastname + " " + alum.name}</div>
-                      <div className="flex justify-between">
-                        <span>{alum.dni}</span>
-                        <Button color="failure" size="xs" onClick={() => eliminar("alumnos", alum)}>
-                          <HiTrash className="cursor-pointer hover:text-red-800 text-lg" title="Quitar" />
-                        </Button>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-
-            <div>
               {/* Profesores */}
               <div>
                 <h5 className="font-semibold  mb-1 ">Profesores:</h5>
@@ -451,6 +435,32 @@ export default function CrearCursos() {
                           color="failure"
                           size="xs"
                           onClick={() => eliminar("docentesEncargados", prof)}>
+                          <HiTrash className="cursor-pointer hover:text-red-800 text-lg" title="Quitar" />
+                        </Button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            <div>
+              {/* Alumnos */}
+              <div>
+                <h4 className="font-semibold mb-1">Alumnos:</h4>
+                <div className="grid grid-cols-2 font-bold text-sm mb-1">
+                  <div>Nombre</div>
+                  <div>Dni</div>
+                </div>
+                <ul className="space-y-1">
+                  {curso.alumnos.map((alum) => (
+                    <li
+                      key={alum.dni || index}
+                      className="grid grid-cols-2 items-center bg-gray-600 px-2 py-1 rounded">
+                      <div>{alum.lastname + " " + alum.name}</div>
+                      <div className="flex justify-between">
+                        <span>{alum.dni}</span>
+                        <Button color="failure" size="xs" onClick={() => eliminar("alumnos", alum)}>
                           <HiTrash className="cursor-pointer hover:text-red-800 text-lg" title="Quitar" />
                         </Button>
                       </div>

@@ -313,11 +313,3 @@ Back_SysEqui/.env.example
 Front_SysEqui/.env.example
 ```
 
-## Notas
-
-- No subir `node_modules`.
-- No subir archivos `.env`.
-- Si el frontend muestra una URL con `undefined`, revisar `Front_SysEqui/.env`.
-- Si aparece `ERR_CONNECTION_REFUSED` al hacer login, revisar que el backend esté corriendo en `localhost:5000`.
-- Si el backend no conecta a la base, revisar que MongoDB esté activo.
-- Si `npm run seed:admin` informa que faltan variables, revisar los valores `ADMIN_*` en `Back_SysEqui/.env`.

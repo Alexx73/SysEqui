@@ -29,6 +29,7 @@ import { useUser } from "../../context/UserContext";
 import { useNavigate } from "react-router-dom";
 
 const menuItems = [
+  { href: "/admin", icon: HiChartPie, label: "Resumen" },
   { href: "/listaAlumnos", icon: HiUsers, label: "Lista de Alumnos" },
   { href: "/asignarEquivalencias", icon: HiShoppingBag, label: "Asignar Equivalencias" },
   { href: "/validarAlumnos", icon: HiChartPie, label: "Validar Alumnos" },

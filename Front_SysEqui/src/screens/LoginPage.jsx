@@ -27,8 +27,8 @@ export default function Login() {
     remember: false,
   };
   const hardcodedFormValues = {
-    dni: "22000111",
-    password: "strongPassword123!",
+    dni: "22222222",
+    // password: "strongPassword123!",
     remember: false,
   };
   const [formValues, setFormValues] = useState(hardcodedFormValues);

@@ -1,7 +1,7 @@
 import { Card, Avatar, TextInput, Button, Label } from "flowbite-react";
 import { Drawer } from "flowbite-react";
 import { useUser } from "../context/UserContext";
-import { HiOutlinePencilAlt, HiOutlineArrowLeft } from "react-icons/hi";
+import { HiEye, HiEyeOff, HiOutlinePencilAlt, HiOutlineArrowLeft } from "react-icons/hi";
 import { useState, useEffect } from "react";
 import { UsersAPI } from "../api/UsersAPI";
 
@@ -10,6 +10,7 @@ export default function Profile({ isOpen = false, onClose }) {
   const { userData, updateUser } = useUser();
   const [editable, setEditable] = useState(false);
   const [btnPassword, setBtnPassword] = useState(false);
+  const [showPasswords, setShowPasswords] = useState(false);
   const { ...initialFormValues } = userData;
   const [formData, setFormData] = useState(initialFormValues);
   const initials = userData.name[0] + userData.lastname[0];
@@ -44,6 +45,11 @@ export default function Profile({ isOpen = false, onClose }) {
     setClaveActual({ ...claveActual, [e.target.id]: e.target.value });
     window.confirm(" Se actualizo la contraseña exitosamente");
   };
+  const handleClose = () => {
+    setShowPasswords(false);
+    onClose();
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -63,12 +69,12 @@ export default function Profile({ isOpen = false, onClose }) {
   };
   return (
     <>
-      <Drawer open={isOpen} onClose={onClose} position="left" className="w-[75%] max-w-[75%]">
+      <Drawer open={isOpen} onClose={handleClose} position="left" className="w-[75%] max-w-[75%]">
         <Drawer.Items>
           <div className="flex flex-col h-full">
             <div className="flex items-center gap-3 px-4 py-4 border-b border-gray-600">
               <button
-                onClick={onClose}
+                onClick={handleClose}
                 className="text-gray-300 hover:text-white transition-colors"
                 title="Volver">
                 <HiOutlineArrowLeft size={24} />
@@ -77,12 +83,13 @@ export default function Profile({ isOpen = false, onClose }) {
             </div>
             <div className="flex-1 overflow-y-auto p-4">
               <Card className="w-full bg-gray-900">
-                <div className="flex flex-col gap-6 items-center p-4">
+                <div className="mx-auto flex w-full max-w-xl flex-col items-center gap-6 p-4">
                   <Avatar placeholderInitials={initials} size="xl" rounded className="w-32 h-32 text-4xl" />
                   <Button
                     className="w-full"
                     onClick={() => {
                       setActiveForm("perfil");
+                      setShowPasswords(false);
                       setEditable(!editable);
                       setFormData(initialFormValues);
                     }}>
@@ -93,13 +100,14 @@ export default function Profile({ isOpen = false, onClose }) {
                     onClick={() => {
                       setActiveForm("clave");
                       setBtnPassword(!btnPassword);
+                      setShowPasswords(false);
                     }}>
                     {btnPassword ? "Cancelar" : "Cambiar Clave"}
                   </Button>
                 </div>
                 <div className="min-h-[400px] items-center justify-center p-4">
                   {activeForm === "perfil" ? (
-                    <div className="flex flex-col w-full space-y-4">
+                    <div className="mx-auto flex w-full max-w-xl flex-col space-y-4">
                       <div>
                         <Label htmlFor="dni">DNI</Label>
                         <TextInput id="dni" value={formData.dni} disabled readOnly />
@@ -140,11 +148,25 @@ export default function Profile({ isOpen = false, onClose }) {
                       </Button>
                     </div>
                   ) : (
-                    <form onSubmit={handleChangePassword} className="flex flex-col w-full space-y-4">
+                    <form onSubmit={handleChangePassword} className="mx-auto flex w-full max-w-xl flex-col space-y-4">
+                      <div className="flex justify-start">
+                        <button
+                          type="button"
+                          onClick={() => setShowPasswords((current) => !current)}
+                          aria-label={showPasswords ? "Ocultar claves" : "Mostrar claves"}
+                          className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-blue-400 transition hover:bg-blue-500/10 hover:text-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                          {showPasswords ? (
+                            <HiEyeOff className="h-5 w-5" aria-hidden="true" />
+                          ) : (
+                            <HiEye className="h-5 w-5" aria-hidden="true" />
+                          )}
+                          {showPasswords ? "Ocultar claves" : "Mostrar claves"}
+                        </button>
+                      </div>
                       <div>
                         <Label>Clave Actual</Label>
                         <TextInput
-                          type="password"
+                          type={showPasswords ? "text" : "password"}
                           value={claveActual}
                           onChange={(e) => setClaveActual(e.target.value)}
                           disabled={!btnPassword}
@@ -154,7 +176,7 @@ export default function Profile({ isOpen = false, onClose }) {
                       <div>
                         <Label>Nueva Clave</Label>
                         <TextInput
-                          type="password"
+                          type={showPasswords ? "text" : "password"}
                           value={claveNueva}
                           onChange={(e) => setClaveNueva(e.target.value)}
                           disabled={!btnPassword}
@@ -164,7 +186,7 @@ export default function Profile({ isOpen = false, onClose }) {
                       <div>
                         <Label>Confirmar Nueva Clave</Label>
                         <TextInput
-                          type="password"
+                          type={showPasswords ? "text" : "password"}
                           value={confirmarClave}
                           onChange={(e) => setConfirmarClave(e.target.value)}
                           disabled={!btnPassword}

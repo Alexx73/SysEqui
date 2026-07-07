@@ -11,6 +11,7 @@ export default function AdministrarCursos() {
   const { alumnos, profesores, getAlumnosYProfesores } = useAlumnosProfesores();
   const { cursos, getCursos, setCursos } = useCursos();
   const { materias, fetchMaterias } = useMaterias();
+  const profesoresActivos = profesores.filter((profesor) => profesor.isActive === true);
 
   const [cursoSeleccionado, setCursoSeleccionado] = useState(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -342,7 +343,7 @@ export default function AdministrarCursos() {
                   </div>
                 </Card>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>{renderLista("docentesEncargados", "bg-green-300", profesores)}</div>
+                  <div>{renderLista("docentesEncargados", "bg-green-300", profesoresActivos)}</div>
                   <div>{renderLista("alumnos", "bg-yellow-300", alumnos)}</div>
                 </div>
                 <div className="flex justify-center gap-20 mt-4">

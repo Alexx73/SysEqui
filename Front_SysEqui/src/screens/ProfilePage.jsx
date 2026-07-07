@@ -189,7 +189,7 @@ export default function Profile({ isOpen = false, onClose }) {
                         </button>
                       </div>
                       <div>
-                        <Label>Clave Actual</Label>
+                        <Label className="text-gray-200">Clave actual</Label>
                         <TextInput
                           type={showPasswords ? "text" : "password"}
                           value={claveActual}
@@ -198,18 +198,24 @@ export default function Profile({ isOpen = false, onClose }) {
                           required
                         />
                       </div>
-                      <div>
-                        <Label>Nueva Clave</Label>
+                      <div className="group relative">
+                        <Label className="text-gray-200">Nueva clave</Label>
                         <TextInput
                           type={showPasswords ? "text" : "password"}
                           value={claveNueva}
                           onChange={(e) => setClaveNueva(e.target.value)}
                           disabled={!btnPassword}
                           required
+                          aria-describedby="password-rules"
                         />
+                        <p
+                          id="password-rules"
+                          className="pointer-events-none absolute left-0 top-full z-50 mt-2 hidden w-max max-w-full rounded-md border border-yellow-300 bg-yellow-100 px-3 py-2 text-xs font-semibold text-yellow-900 shadow-lg group-hover:block group-focus-within:block">
+                          Reglas: 8 a 20 caracteres, una mayúscula, una minúscula, un número y un símbolo especial.
+                        </p>
                       </div>
                       <div>
-                        <Label>Confirmar Nueva Clave</Label>
+                        <Label className="text-gray-200">Confirmar nueva clave</Label>
                         <TextInput
                           type={showPasswords ? "text" : "password"}
                           value={confirmarClave}

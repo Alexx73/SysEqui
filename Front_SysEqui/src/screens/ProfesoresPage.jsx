@@ -83,10 +83,13 @@ export default function Profesores() {
     if (!confirmado) return;
 
     try {
-      if (fila.isActive) {
-        await UsersAPI.deactivateEstado(fila._id);
-      } else {
-        await UsersAPI.activateEstado(fila._id);
+      const response = fila.isActive
+        ? await UsersAPI.deactivateEstado(fila._id)
+        : await UsersAPI.activateEstado(fila._id);
+
+      if (response?.status !== 200) {
+        alert(response?.data?.error || "Error al actualizar el estado del usuario.");
+        return;
       }
 
       triggerToast(
@@ -94,7 +97,7 @@ export default function Profesores() {
       );
       cargarStaff();
     } catch (err) {
-      alert("❌ Error al actualizar el estado del usuario.", err);
+      alert(err?.message || "Error al actualizar el estado del usuario.");
     }
   };
 

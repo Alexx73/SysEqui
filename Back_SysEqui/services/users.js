@@ -7,6 +7,7 @@ import LoginAudit from "../models/LoginAudit.js";
 import UsersAuth from "../models/usersAuth.js";
 import UsersProfile from "../models/usersProfile.js";
 import UsersUnAuth from "../models/usersUnAuth.js";
+import Cursos from "../models/cursos.js";
 import EquivalenciaCompleted from "../models/equivalencias-completadas.js";
 import EquivalenciaPendiente from "../models/equivalencias-pendientes.js";
 // Functions
@@ -489,6 +490,18 @@ const userService = {
     if (!userProfile) {
       throw { status: 404, message: "Usuario no encontrado" };
     }
+
+    if (userProfile.role === "professor" || userProfile.role === "preceptor") {
+      const assignedCourse = await Cursos.findOne({ docentesEncargados: userProfile._id });
+      if (assignedCourse) {
+        const roleName = userProfile.role === "preceptor" ? "preceptor" : "profesor";
+        throw {
+          status: 400,
+          message: `El ${roleName} no se puede deshabilitar porque está asignado a un curso`,
+        };
+      }
+    }
+
     userProfile.isActive = false;
     await userProfile.save();
   },

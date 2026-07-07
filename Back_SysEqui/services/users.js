@@ -258,6 +258,55 @@ const userService = {
     // Actualizar el perfil del usuario solo con los campos presentes
     await UsersProfile.updateOne({ dni: userDni }, { $set: updateFields });
   },
+  updateOwnPassword: async (userDni, body) => {
+    const { currentPassword, newPassword, confirmPassword } = body;
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      throw {
+        status: 400,
+        message: "Todos los campos son obligatorios",
+      };
+    }
+
+    if (newPassword !== confirmPassword) {
+      throw {
+        status: 400,
+        message: "Las contraseñas no coinciden",
+      };
+    }
+
+    const userAuth = await UsersAuth.findOne({ dni: userDni });
+    if (!userAuth) {
+      throw { status: 404, message: "Usuario no encontrado" };
+    }
+
+    const isCurrentPasswordValid = await bcrypt.compare(currentPassword, userAuth.password);
+    if (!isCurrentPasswordValid) {
+      throw {
+        status: 401,
+        message: "La contraseña actual es incorrecta",
+      };
+    }
+
+    const isSamePassword = await bcrypt.compare(newPassword, userAuth.password);
+    if (isSamePassword) {
+      throw {
+        status: 400,
+        message: "La nueva contraseña no puede ser igual a la actual",
+      };
+    }
+
+    const errorOnPassword = validatePassword(newPassword);
+    if (errorOnPassword !== "") {
+      throw {
+        status: 400,
+        message: errorOnPassword,
+      };
+    }
+
+    userAuth.password = await bcrypt.hash(newPassword, 10);
+    await userAuth.save();
+  },
   // Función para validar un usuario
   validateUser: async (accountId) => {
     // Validar que el id corresponda a un usuario inactivo

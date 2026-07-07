@@ -26,12 +26,7 @@ export default function Login() {
     password: "",
     remember: false,
   };
-  const hardcodedFormValues = {
-    dni: "22222222",
-    // password: "strongPassword123!",
-    remember: false,
-  };
-  const [formValues, setFormValues] = useState(hardcodedFormValues);
+  const [formValues, setFormValues] = useState(initialFormValues);
   const [errors, setErorrs] = useState({});
   const [mostrarPassword, setMostrarPassword] = useState(false);
 
@@ -47,7 +42,6 @@ export default function Login() {
     e.preventDefault();
     try {
       const { dni, password } = formValues;
-      console.log(formValues);
       const body = { dni: Number(dni), password };
       loginSchema.parse(body);
       const response = await UsersAPI.login(body);
@@ -74,8 +68,7 @@ export default function Login() {
             console.warn("Rol desconocido:", user.role);
         }
       } else {
-        console.log("error", response.data);
-        alert("❌ Login fallido:", response.data);
+        alert(response?.data?.error || "Login fallido");
       }
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -85,7 +78,7 @@ export default function Login() {
         });
         setErorrs(fieldErrors);
       } else {
-        alert("❌ Error inesperado:", error);
+        alert(error?.message || "Error inesperado");
       }
     }
   };

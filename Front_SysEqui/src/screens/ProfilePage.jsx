@@ -1,7 +1,7 @@
 import { Card, Avatar, TextInput, Button, Label } from "flowbite-react";
 import { Drawer } from "flowbite-react";
 import { useUser } from "../context/UserContext";
-import { HiEye, HiEyeOff, HiOutlinePencilAlt, HiOutlineArrowLeft } from "react-icons/hi";
+import { HiEye, HiEyeOff, HiOutlineArrowLeft } from "react-icons/hi";
 import { useState, useEffect } from "react";
 import { UsersAPI } from "../api/UsersAPI";
 
@@ -15,7 +15,7 @@ export default function Profile({ isOpen = false, onClose }) {
   const [formData, setFormData] = useState(initialFormValues);
   const initials = userData.name[0] + userData.lastname[0];
 
-  const [claveActual, setClaveActual] = useState(userData.password);
+  const [claveActual, setClaveActual] = useState("");
   const [claveNueva, setClaveNueva] = useState("");
   const [confirmarClave, setConfirmarClave] = useState("");
   const [errorClave, setErrorClave] = useState("");
@@ -30,8 +30,10 @@ export default function Profile({ isOpen = false, onClose }) {
       setErrorClave("La nueva clave no puede ser igual a la actual");
     } else if (claveNueva !== confirmarClave) {
       setErrorClave("Las claves no coinciden");
-    } else if (!passwordRegex.test(claveNueva)) {
-      setErrorClave("La nueva clave debe tener al menos una mayúscula, una minúscula y un símbolo especial");
+    } else if (claveNueva.length < 8 || claveNueva.length > 20) {
+      setErrorClave("La nueva clave debe tener entre 8 y 20 caracteres");
+    } else if (!passwordRegex.test(claveNueva) || !/[0-9]/.test(claveNueva)) {
+      setErrorClave("La nueva clave debe tener al menos una mayúscula, una minúscula, un número y un símbolo especial");
     } else {
       setErrorClave("");
     }
@@ -41,9 +43,28 @@ export default function Profile({ isOpen = false, onClose }) {
     setFormData({ ...formData, [e.target.id]: e.target.value });
   };
 
-  const handleChangePassword = (e) => {
-    setClaveActual({ ...claveActual, [e.target.id]: e.target.value });
-    window.confirm(" Se actualizo la contraseña exitosamente");
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+    if (errorClave) return;
+
+    const response = await UsersAPI.updateOwnPassword({
+      currentPassword: claveActual,
+      newPassword: claveNueva,
+      confirmPassword: confirmarClave,
+    });
+
+    if (response?.status === 200) {
+      setClaveActual("");
+      setClaveNueva("");
+      setConfirmarClave("");
+      setBtnPassword(false);
+      setShowPasswords(false);
+      setActiveForm("perfil");
+      window.confirm(response.data?.message || "Contraseña actualizada");
+      return;
+    }
+
+    setErrorClave(response?.data?.error || "No se pudo actualizar la contraseña");
   };
   const handleClose = () => {
     setShowPasswords(false);
@@ -101,6 +122,10 @@ export default function Profile({ isOpen = false, onClose }) {
                       setActiveForm("clave");
                       setBtnPassword(!btnPassword);
                       setShowPasswords(false);
+                      setClaveActual("");
+                      setClaveNueva("");
+                      setConfirmarClave("");
+                      setErrorClave("");
                     }}>
                     {btnPassword ? "Cancelar" : "Cambiar Clave"}
                   </Button>

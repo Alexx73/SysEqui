@@ -147,6 +147,51 @@
  *                 example: "No se pudo procesar la solicitud. Intente nuevamente más tarde."
  */
 
+//PATCH - /users/profile/password
+/**
+ * @swagger
+ * /users/profile/password:
+ *   patch:
+ *     tags: [Users]
+ *     summary: Actualiza la contraseña del usuario autenticado
+ *     description: Valida la contraseña actual y guarda una nueva contraseña hasheada
+ *     produces: application/json
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - currentPassword
+ *               - newPassword
+ *               - confirmPassword
+ *             properties:
+ *               currentPassword:
+ *                 type: string
+ *                 description: Contraseña actual del usuario
+ *                 example: "strongP@ssw0rd"
+ *               newPassword:
+ *                 type: string
+ *                 description: Nueva contraseña del usuario
+ *                 example: "newStrongP@ssw0rd1"
+ *               confirmPassword:
+ *                 type: string
+ *                 description: Confirmación de la nueva contraseña
+ *                 example: "newStrongP@ssw0rd1"
+ *     responses:
+ *       200:
+ *         description: Contraseña actualizada exitosamente
+ *       400:
+ *         description: Datos incompletos, contraseña inválida o confirmación incorrecta
+ *       401:
+ *         description: Contraseña actual incorrecta
+ *       404:
+ *         description: Usuario no encontrado
+ *       500:
+ *         description: Error interno del servidor
+ */
+
 //POST - /users/register
 /**
  * @swagger

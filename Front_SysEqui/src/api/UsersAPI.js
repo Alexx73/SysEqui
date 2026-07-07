@@ -90,6 +90,14 @@ export const UsersAPI = {
       return error.response;
     }
   },
+  updateOwnPassword: async (body) => {
+    try {
+      const response = await axios.patch(`${baseRoute}/profile/password`, body);
+      return response;
+    } catch (error) {
+      return error.response;
+    }
+  },
   getUnauthUsers: async () => {
     try {
       const response = await axios.get(`${baseRoute}/unauth`);

@@ -4,6 +4,7 @@ import { useUser } from "../context/UserContext";
 import { HiEye, HiEyeOff, HiOutlineArrowLeft } from "react-icons/hi";
 import { useState, useEffect } from "react";
 import { UsersAPI } from "../api/UsersAPI";
+import { passwordRulesText, validatePasswordRules } from "../utils/passwordValidation";
 
 export default function Profile({ isOpen = false, onClose }) {
   const [activeForm, setActiveForm] = useState("perfil");
@@ -19,7 +20,6 @@ export default function Profile({ isOpen = false, onClose }) {
   const [claveNueva, setClaveNueva] = useState("");
   const [confirmarClave, setConfirmarClave] = useState("");
   const [errorClave, setErrorClave] = useState("");
-  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[^A-Za-z0-9]).+$/;
 
   useEffect(() => {
     if (!btnPassword) return;
@@ -30,12 +30,8 @@ export default function Profile({ isOpen = false, onClose }) {
       setErrorClave("La nueva clave no puede ser igual a la actual");
     } else if (claveNueva !== confirmarClave) {
       setErrorClave("Las claves no coinciden");
-    } else if (claveNueva.length < 8 || claveNueva.length > 20) {
-      setErrorClave("La nueva clave debe tener entre 8 y 20 caracteres");
-    } else if (!passwordRegex.test(claveNueva) || !/[0-9]/.test(claveNueva)) {
-      setErrorClave("La nueva clave debe tener al menos una mayúscula, una minúscula, un número y un símbolo especial");
     } else {
-      setErrorClave("");
+      setErrorClave(validatePasswordRules(claveNueva));
     }
   }, [claveActual, claveNueva, confirmarClave, btnPassword]);
 
@@ -211,7 +207,7 @@ export default function Profile({ isOpen = false, onClose }) {
                         <p
                           id="password-rules"
                           className="pointer-events-none absolute left-0 top-full z-50 mt-2 hidden w-max max-w-full rounded-md border border-yellow-300 bg-yellow-100 px-3 py-2 text-xs font-semibold text-yellow-900 shadow-lg group-hover:block group-focus-within:block">
-                          Reglas: 8 a 20 caracteres, una mayúscula, una minúscula, un número y un símbolo especial.
+                          {passwordRulesText}
                         </p>
                       </div>
                       <div>

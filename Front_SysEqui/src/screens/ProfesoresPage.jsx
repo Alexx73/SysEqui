@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import { Card, Button, TextInput, Label, ToggleSwitch, Toast } from "flowbite-react";
 import { HiCheck } from "react-icons/hi";
+import { HiMiniEye, HiMiniEyeSlash } from "react-icons/hi2";
 import SearchForm from "./forms/SearchFom";
 import Tabla from "../components/Tabla";
 import { UsersAPI } from "../api/UsersAPI";
+import { passwordRulesText, validatePasswordRules } from "../utils/passwordValidation";
 
 const initialForm = {
   dni: "",
@@ -12,12 +14,20 @@ const initialForm = {
   name: "",
   lastname: "",
   cellphone: "",
-  role: "profesor",
+  role: "professor",
 };
 
 const dniRegex = /^\d{8}$/;
 const validateDni = (dni) => /^\d{8}$/.test(dni);
+const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 const PAGE_SIZE_OPTIONS = [5, 10, 15, 20];
+const requiredCreateFields = [
+  { key: "dni", label: "DNI" },
+  { key: "name", label: "nombre" },
+  { key: "lastname", label: "apellido" },
+  { key: "email", label: "email" },
+  { key: "password", label: "contraseña" },
+];
 
 export default function Profesores() {
   const [form, setForm] = useState(initialForm);
@@ -25,6 +35,7 @@ export default function Profesores() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showToast, setShowToast] = useState("");
   const [mostrarFormCrearUsuario, setMostrarFormCrearUsuario] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(5);
 
@@ -56,7 +67,10 @@ export default function Profesores() {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const resetForm = () => setForm(initialForm);
+  const resetForm = () => {
+    setForm(initialForm);
+    setShowPassword(false);
+  };
 
   const handleEdit = (fila) => {
     setForm(fila);
@@ -103,7 +117,32 @@ export default function Profesores() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (dniError) return;
+
+    if (!form._id) {
+      const missingField = requiredCreateFields.find((field) => !String(form[field.key] || "").trim());
+      if (missingField) {
+        alert(`El campo ${missingField.label} es obligatorio`);
+        return;
+      }
+    }
+
+    if (!validateDni(form.dni)) {
+      alert("El DNI debe tener 8 números");
+      return;
+    }
+
+    if (!form._id && !validateEmail(form.email || "")) {
+      alert("El email debe tener un formato válido");
+      return;
+    }
+
+    if (!form._id) {
+      const passwordError = validatePasswordRules(form.password || "");
+      if (passwordError) {
+        alert(passwordError);
+        return;
+      }
+    }
 
     if (form._id) {
       setShowEditModal(true);
@@ -115,10 +154,10 @@ export default function Profesores() {
           resetForm();
           cargarStaff();
         } else {
-          alert("❌ Error al crear usuario: " + (response.data?.message || "Error desconocido"));
+          alert("Error al crear usuario: " + (response.data?.error || response.data?.message || "Error desconocido"));
         }
       } catch (error) {
-        alert("❌ Error en la solicitud: " + error.message);
+        alert("Error en la solicitud: " + error.message);
       }
     }
   };
@@ -210,7 +249,9 @@ export default function Profesores() {
                 id="dni-input"
                 name="dni"
                 value={form.dni}
-                disabled
+                disabled={Boolean(form._id)}
+                onChange={handleChange}
+                maxLength={8}
                 inputMode="numeric"
                 className={`w-full rounded border text-sm bg-gray-800 text-white focus:border-blue-500 focus:ring-blue-500
               ${dniError ? "border-red-500 ring-red-500" : "border-gray-600"}`}
@@ -225,22 +266,38 @@ export default function Profesores() {
                   name={field}
                   value={form[field] || ""}
                   onChange={handleChange}
-                  required
+                  required={field !== "cellphone"}
                 />
               </div>
             ))}
             {!form._id && (
-              <div>
+              <div className="group relative">
                 <Label htmlFor="password" value="Contraseña" />
-                <TextInput
-                  id="password"
-                  name="password"
-                  type="password"
-                  value={form.password || ""}
-                  onChange={handleChange}
-                  className="w-full rounded-md border-gray-300 dark:bg-gray-700 dark:text-white"
-                  required
-                />
+                <div className="relative">
+                  <TextInput
+                    id="password"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    value={form.password || ""}
+                    onChange={handleChange}
+                    className="w-full rounded-md border-gray-300 pl-11 dark:bg-gray-700 dark:text-white"
+                    required
+                    aria-describedby="staff-password-rules"
+                  />
+                  <button
+                    type="button"
+                    aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                    title={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                    onClick={() => setShowPassword((visible) => !visible)}
+                    className="absolute left-3 top-1/2 z-10 -translate-y-1/2 text-cyan-600 hover:text-cyan-800 focus:outline-none focus:ring-2 focus:ring-cyan-500 dark:text-cyan-300 dark:hover:text-cyan-100">
+                    {showPassword ? <HiMiniEyeSlash className="h-5 w-5" /> : <HiMiniEye className="h-5 w-5" />}
+                  </button>
+                </div>
+                <p
+                  id="staff-password-rules"
+                  className="pointer-events-none absolute left-0 top-full z-50 mt-2 hidden w-max max-w-full rounded-md border border-yellow-300 bg-yellow-100 px-3 py-2 text-xs font-semibold text-yellow-900 shadow-lg group-hover:block group-focus-within:block">
+                  {passwordRulesText}
+                </p>
               </div>
             )}
             <div>

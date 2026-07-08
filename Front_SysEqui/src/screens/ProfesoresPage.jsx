@@ -46,11 +46,11 @@ export default function Profesores() {
     setTimeout(() => setShowToast(""), 2000);
   };
 
-  const cargarStaff = async () => {
+  const cargarStaff = async ({ resetPage = true } = {}) => {
     try {
       const res = await UsersAPI.getAllStaff();
       setProfesores((res.data.staff || []).sort((a, b) => a.lastname.localeCompare(b.lastname)));
-      setPage(1);
+      if (resetPage) setPage(1);
     } catch (err) {
       alert("❌ Error al cargar staff", err);
     }
@@ -109,7 +109,7 @@ export default function Profesores() {
       triggerToast(
         `${icono} ${fila.name} ${fila.lastname} ha sido ${fila.isActive ? "deshabilitado" : "habilitado"}`,
       );
-      cargarStaff();
+      cargarStaff({ resetPage: false });
     } catch (err) {
       alert(err?.message || "Error al actualizar el estado del usuario.");
     }

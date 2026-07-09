@@ -65,17 +65,17 @@ const SearchForm = forwardRef(({ onSearch }, ref) => {
         ))}
 
         <div>
-          <Label htmlFor="rol" value="Rol" />
+          <Label htmlFor="role" value="Rol" />
           <select
-            id="rol"
-            name="rol"
-            value={filters.rol}
+            id="role"
+            name="role"
+            value={filters.role}
             onChange={handleChange}
             className="h-9 w-full text-sm rounded-md border-gray-300 dark:bg-gray-700 dark:text-white">
             <option value="">Todos</option>
             <option value="preceptor">Preceptor</option>
-            <option value="profesor">Profesor</option>
-            <option value="Admin">Admin</option>
+            <option value="professor">Profesor</option>
+            <option value="admin">Admin</option>
           </select>
         </div>
 

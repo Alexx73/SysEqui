@@ -21,6 +21,7 @@ const dniRegex = /^\d{8}$/;
 const validateDni = (dni) => /^\d{8}$/.test(dni);
 const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 const PAGE_SIZE_OPTIONS = [5, 10, 15, 20];
+const sortStaff = (staff = []) => [...staff].sort((a, b) => a.lastname.localeCompare(b.lastname));
 const requiredCreateFields = [
   { key: "dni", label: "DNI" },
   { key: "name", label: "nombre" },
@@ -32,6 +33,7 @@ const requiredCreateFields = [
 export default function Profesores() {
   const [form, setForm] = useState(initialForm);
   const [profesores, setProfesores] = useState([]);
+  const [staffCompleto, setStaffCompleto] = useState([]);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showToast, setShowToast] = useState("");
   const [mostrarFormCrearUsuario, setMostrarFormCrearUsuario] = useState(false);
@@ -49,7 +51,9 @@ export default function Profesores() {
   const cargarStaff = async ({ resetPage = true } = {}) => {
     try {
       const res = await UsersAPI.getAllStaff();
-      setProfesores((res.data.staff || []).sort((a, b) => a.lastname.localeCompare(b.lastname)));
+      const staff = sortStaff(res.data.staff || []);
+      setStaffCompleto(staff);
+      setProfesores(staff);
       if (resetPage) setPage(1);
     } catch (err) {
       alert("❌ Error al cargar staff", err);
@@ -180,14 +184,35 @@ export default function Profesores() {
     }
   };
 
-  const handleSearch = async (filters) => {
-    try {
-      const res = await UsersAPI.getAllStaff(filters);
-      setProfesores((res.data.staff || []).sort((a, b) => a.lastname.localeCompare(b.lastname)));
+  const handleSearch = (filters) => {
+    const normalizedFilters = Object.entries(filters).reduce((acc, [key, value]) => {
+      acc[key] = String(value || "").trim().toLowerCase();
+      return acc;
+    }, {});
+
+    const hasFilters = Object.values(normalizedFilters).some(Boolean);
+    if (!hasFilters) {
+      setProfesores(staffCompleto);
       setPage(1);
-    } catch (err) {
-      setProfesores([]);
+      return;
     }
+
+    const filteredStaff = staffCompleto.filter((staff) => {
+      const createdAt = staff.createdAt ? new Date(staff.createdAt).toISOString().slice(0, 10) : "";
+
+      return (
+        (!normalizedFilters.dni || String(staff.dni || "").toLowerCase().includes(normalizedFilters.dni)) &&
+        (!normalizedFilters.name || String(staff.name || "").toLowerCase().includes(normalizedFilters.name)) &&
+        (!normalizedFilters.lastname || String(staff.lastname || "").toLowerCase().includes(normalizedFilters.lastname)) &&
+        (!normalizedFilters.email || String(staff.email || "").toLowerCase().includes(normalizedFilters.email)) &&
+        (!normalizedFilters.phone || String(staff.cellphone || "").toLowerCase().includes(normalizedFilters.phone)) &&
+        (!normalizedFilters.createdAt || createdAt.includes(normalizedFilters.createdAt)) &&
+        (!normalizedFilters.role || staff.role === normalizedFilters.role)
+      );
+    });
+
+    setProfesores(filteredStaff);
+    setPage(1);
   };
 
   const totalPages = Math.max(1, Math.ceil(profesores.length / pageSize));

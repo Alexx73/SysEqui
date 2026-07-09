@@ -171,7 +171,7 @@ export default function Profesores() {
         setShowEditModal(false);
         resetForm();
         setMostrarFormCrearUsuario(false);
-        cargarStaff();
+        cargarStaff({ resetPage: false });
       } else {
         alert("❌ Error al actualizar usuario: " + (response.data?.message || "Error desconocido"));
       }

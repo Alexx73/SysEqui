@@ -6,6 +6,7 @@ import { CursosAPI } from "../api/CursosAPI";
 import { useMaterias } from "../utils/useMaterias";
 import { useAlumnosProfesores } from "../utils/useAlumnosProfesores";
 import { useCursos } from "../utils/useCursos";
+import CrearCursos from "./CrearCursosPage";
 
 const PAGE_SIZE_OPTIONS = [5, 10, 15, 20];
 
@@ -17,6 +18,7 @@ export default function AdministrarCursos() {
 
   const [cursoSeleccionado, setCursoSeleccionado] = useState(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showCrearCursoModal, setShowCrearCursoModal] = useState(false);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(5);
   const [selecciones, setSelecciones] = useState({
@@ -24,13 +26,14 @@ export default function AdministrarCursos() {
     docentesEncargados: [],
   });
 
+  const cargarDatosCursos = async () => {
+    const materiasCargadas = await fetchMaterias();
+    const { alumnos, profesores } = await getAlumnosYProfesores();
+    await getCursos(materiasCargadas, alumnos, profesores);
+  };
+
   useEffect(() => {
-    const cargarDatos = async () => {
-      const materiasCargadas = await fetchMaterias();
-      const { alumnos, profesores } = await getAlumnosYProfesores();
-      await getCursos(materiasCargadas, alumnos, profesores);
-    };
-    cargarDatos();
+    cargarDatosCursos();
   }, []);
 
   // Tooltip personalizado
@@ -148,6 +151,11 @@ export default function AdministrarCursos() {
   return (
     <div>
       <h2 className="text-3xl font-bold mb-6 text-center">Administrar Cursos</h2>
+      <div className="mb-6 flex justify-start">
+        <Button color="blue" onClick={() => setShowCrearCursoModal(true)}>
+          + Curso
+        </Button>
+      </div>
       <TablaReutilizable
         datos={cursosPaginados}
         columnas={[
@@ -303,6 +311,19 @@ export default function AdministrarCursos() {
         </div>
       )}
 
+      <Modal
+        show={showCrearCursoModal}
+        onClose={() => setShowCrearCursoModal(false)}
+        size="7xl">
+        <Modal.Header>Crear Curso</Modal.Header>
+        <Modal.Body>
+          <CrearCursos
+            embedded={true}
+            onCursoCreado={cargarDatosCursos}
+            onClose={() => setShowCrearCursoModal(false)}
+          />
+        </Modal.Body>
+      </Modal>
       {/* Modal de edición */}
       <Modal
         show={!!cursoSeleccionado && materias.length > 0}

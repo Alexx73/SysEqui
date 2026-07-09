@@ -18,7 +18,7 @@ import { CursosAPI } from "../api/CursosAPI";
 import { useAlumnosProfesores } from "../utils/useAlumnosProfesores";
 import { PendientesAPI } from "../api/Pendientes";
 
-export default function CrearCursos() {
+export default function CrearCursos({ embedded = false, onCursoCreado, onClose } = {}) {
   const [modoEdicion, setModoEdicion] = useState(false);
   const [datosFormulario, setDatosFormulario] = useState(null);
 
@@ -99,7 +99,7 @@ export default function CrearCursos() {
   const confirmarCurso = async () => {
     const cursoAEnviar = { ...curso };
     delete cursoAEnviar.materia; // ⛔ Eliminar campo solo del envío
-    alert("Curso enviado. Ver consola.");
+    // alert("Curso enviado. Ver consola.");
     try {
       const res = await CursosAPI.createCurso(cursoAEnviar);
       alert("Curso creado con éxito");
@@ -121,6 +121,8 @@ export default function CrearCursos() {
         preceptores: [],
         alumnos: [],
       });
+      await onCursoCreado?.();
+      onClose?.();
     } catch (error) {
       console.error("❌ Error al crear el curso:", error);
       alert("Error al crear el curso. Ver consola.");
@@ -267,7 +269,7 @@ export default function CrearCursos() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-1">
-      <h2 className="text-2xl font-bold mb-2 text-center">Crear Nuevo Curso</h2>
+      {!embedded && <h2 className="text-2xl font-bold mb-2 text-center">Crear Nuevo Curso</h2>}
 
       {/* Select */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-3">

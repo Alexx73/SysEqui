@@ -16,7 +16,6 @@ import {
   HiClipboardList,
   HiCollection,
   HiLogout,
-  HiPlusCircle,
   HiSearch,
   HiUsers,
 } from "react-icons/hi";
@@ -32,7 +31,6 @@ const menuItems = [
   { href: "/listaAlumnos", icon: HiUsers, iconClasses: "bg-cyan-500/20 text-cyan-400", label: "Lista de Alumnos" },
   { href: "/asignarEquivalencias", icon: HiClipboardList, iconClasses: "bg-violet-500/20 text-violet-400", label: "Asignar Equivalencias" },
   { href: "/validarAlumnos", icon: HiCheckCircle, iconClasses: "bg-emerald-500/20 text-emerald-400", label: "Validar Alumnos" },
-  { href: "/crearcurso", icon: HiPlusCircle, iconClasses: "bg-sky-500/20 text-sky-400", label: "Crear Curso" },
   { href: "/administrarcursos", icon: HiCollection, iconClasses: "bg-amber-500/20 text-amber-400", label: "Administrar Cursos" },
   { href: "/listaMaterias", icon: HiBookOpen, iconClasses: "bg-green-500/20 text-green-400", label: "Lista de Materias" },
   { href: "/profesores", icon: FaChalkboardTeacher, iconClasses: "bg-rose-500/20 text-rose-400", label: "Gestión Profesores" },

@@ -7,8 +7,28 @@ import PageTitle from "../components/PageTitle";
 
 const PAGE_SIZE_OPTIONS = [5, 10, 15, 20];
 
-const sortAlumnosByLastname = (alumnos = []) =>
-  [...alumnos].sort((a, b) => String(a.lastname || "").localeCompare(String(b.lastname || "")));
+const sortAlumnos = (alumnos = [], sortConfig = { key: "lastname", direction: "asc" }) =>
+  [...alumnos].sort((a, b) => {
+    const firstValue = a[sortConfig.key];
+    const secondValue = b[sortConfig.key];
+    const direction = sortConfig.direction === "asc" ? 1 : -1;
+
+    if (sortConfig.key === "dni") {
+      const firstNumber = Number(firstValue);
+      const secondNumber = Number(secondValue);
+
+      if (Number.isFinite(firstNumber) && Number.isFinite(secondNumber)) {
+        return (firstNumber - secondNumber) * direction;
+      }
+    }
+
+    return (
+      String(firstValue || "").localeCompare(String(secondValue || ""), "es", {
+        numeric: true,
+        sensitivity: "base",
+      }) * direction
+    );
+  });
 
 export default function ListaAlumnos() {
   const [alumno, setAlumno] = useState([]);
@@ -21,12 +41,13 @@ export default function ListaAlumnos() {
   const [editAlumno, setEditAlumno] = useState(null);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [sortConfig, setSortConfig] = useState({ key: "lastname", direction: "asc" });
 
   const cargarAlumnos = async () => {
     try {
       const res = await UsersAPI.getAllUsers();
       if (res?.status === 200) {
-        const alumnos = sortAlumnosByLastname((res.data?.users || []).filter((user) => user.role === "student"));
+        const alumnos = (res.data?.users || []).filter((user) => user.role === "student");
         setAlumno(alumnos);
         setAlumnoOriginal(alumnos);
         setPage(1);
@@ -87,10 +108,19 @@ export default function ListaAlumnos() {
     setShowEditModal(true);
   };
 
-  const totalPages = Math.max(1, Math.ceil(alumno.length / pageSize));
+  const handleSort = (key) => {
+    setSortConfig((current) => ({
+      key,
+      direction: current.key === key && current.direction === "asc" ? "desc" : "asc",
+    }));
+    setPage(1);
+  };
+
+  const alumnosOrdenados = sortAlumnos(alumno, sortConfig);
+  const totalPages = Math.max(1, Math.ceil(alumnosOrdenados.length / pageSize));
   const currentPage = Math.min(page, totalPages);
   const startIndex = (currentPage - 1) * pageSize;
-  const alumnosPaginados = alumno.slice(startIndex, startIndex + pageSize);
+  const alumnosPaginados = alumnosOrdenados.slice(startIndex, startIndex + pageSize);
 
   return (
     <div className="w-full max-w-6xl mx-auto px-4 flex flex-col gap-4">
@@ -135,16 +165,18 @@ export default function ListaAlumnos() {
         datos={alumnosPaginados}
         columnas={[
           { clave: "counter", titulo: "#", render: (_, __, index) => startIndex + index + 1 },
-          { clave: "lastname", titulo: "Apellido" },
+          { clave: "lastname", titulo: "Apellido", sortable: true },
           { clave: "name", titulo: "Nombre" },
 
-          { clave: "dni", titulo: "DNI" },
+          { clave: "dni", titulo: "DNI", sortable: true },
           { clave: "email", titulo: "Email" },
           { clave: "cellphone", titulo: "Teléfono" },
         ]}
         mostrarIconoEditar={true}
         onDobleClickFila={(fila) => onEdit(fila)}
         onEditar={(fila) => onEdit(fila)}
+        sortConfig={sortConfig}
+        onSort={handleSort}
       />
       {alumno.length > 5 && (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-blue-500/30 bg-blue-500/10 p-3">

@@ -25,14 +25,34 @@ export default function TablaReutilizable({
   onToggle,
   onLinkClick, // 👈 AÑADIR ESTA LÍNEA
   onDobleClickFila,
+  sortConfig,
+  onSort,
 }) {
   return (
     <div className="overflow-x-auto">
       <Table hoverable>
         <Table.Head>
-          {columnas.map((col, index) => (
-            <Table.HeadCell key={`head-${col.clave || index}`}>{col.titulo}</Table.HeadCell>
-          ))}
+          {columnas.map((col, index) => {
+            const isSortable = Boolean(col.sortable && onSort);
+            const isSorted = sortConfig?.key === col.clave;
+            const sortIndicator = isSorted ? (sortConfig.direction === "asc" ? "▲" : "▼") : "";
+
+            return (
+              <Table.HeadCell key={`head-${col.clave || index}`}>
+                {isSortable ? (
+                  <button
+                    type="button"
+                    onClick={() => onSort(col.clave)}
+                    className="flex w-full cursor-pointer items-center justify-start gap-1 rounded text-left font-semibold uppercase tracking-normal hover:text-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-800">
+                    <span>{col.titulo}</span>
+                    <span className="inline-block w-3 text-blue-300">{sortIndicator}</span>
+                  </button>
+                ) : (
+                  col.titulo
+                )}
+              </Table.HeadCell>
+            );
+          })}
 {(mostrarIconoEditar ||
             mostrarIconoEliminar ||
             mostrarLinks ||

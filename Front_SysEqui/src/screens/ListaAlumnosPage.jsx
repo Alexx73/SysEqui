@@ -81,8 +81,8 @@ export default function ListaAlumnos() {
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto px-4 py-8 flex flex-col gap-4">
-      <h2 className="text-3xl font-bold mb-6 text-center pb-6">Lista de Alumnos</h2>
+    <div className="w-full max-w-6xl mx-auto px-4 flex flex-col gap-4">
+      <h2 className="text-3xl font-bold mb-4 text-center">Lista de Alumnos</h2>
       <Card className="mb-8">
         <p className="text-gray-700 dark:text-gray-300"></p>
         <form

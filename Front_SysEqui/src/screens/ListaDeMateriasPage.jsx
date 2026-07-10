@@ -4,6 +4,7 @@ import TablaReutilizable from "../components/Tabla";
 import { Button, Card, Modal, ToggleSwitch } from "flowbite-react";
 import MyForm from "./forms/Myform";
 import { useMaterias } from "../utils/useMaterias";
+import PageTitle from "../components/PageTitle";
 
 const PAGE_SIZE_OPTIONS = [5, 10, 15, 20];
 
@@ -86,9 +87,7 @@ export default function ListaDeMaterias() {
 
   return (
     <div className="container mx-auto px-2">
-      <h2 className="text-3xl font-bold items-center justify-center text-center">
-        Lista de Materias para Asignar a Cursos
-      </h2>
+      <PageTitle>Lista de Materias para Asignar a Cursos</PageTitle>
       <div className="mt-6 flex justify-start">
         <Button color="blue" onClick={() => setModalOpen(true)}>
           ➕ Agregar Materia

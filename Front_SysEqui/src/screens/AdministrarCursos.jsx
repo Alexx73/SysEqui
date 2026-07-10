@@ -7,6 +7,7 @@ import { useMaterias } from "../utils/useMaterias";
 import { useAlumnosProfesores } from "../utils/useAlumnosProfesores";
 import { useCursos } from "../utils/useCursos";
 import CrearCursoFormModal from "../components/CrearCursoFormModal";
+import PageTitle from "../components/PageTitle";
 
 const PAGE_SIZE_OPTIONS = [5, 10, 15, 20];
 
@@ -150,7 +151,7 @@ export default function AdministrarCursos() {
 
   return (
     <div>
-      <h2 className="text-3xl font-bold mb-6 text-center">Administrar Cursos</h2>
+      <PageTitle>Administrar Cursos</PageTitle>
       <div className="mb-6 flex justify-start">
         <Button color="blue" onClick={() => setShowCrearCursoModal(true)}>
           + Curso

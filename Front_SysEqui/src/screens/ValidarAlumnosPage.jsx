@@ -6,6 +6,7 @@ import { FcSearch } from "react-icons/fc";
 import { UsersAPI } from "../api/UsersAPI";
 // Flowbite
 import { Button, Table, TableRow, Modal, FloatingLabel, Card } from "flowbite-react";
+import PageTitle from "../components/PageTitle";
 
 export default function ValidarAlumnos() {
   const [data, setData] = useState([]);
@@ -99,6 +100,7 @@ export default function ValidarAlumnos() {
 
   return (
     <div className="w-full max-w-6xl mx-auto px-4 py-8 flex flex-col gap-4">
+      <PageTitle>Validar Alumnos</PageTitle>
       <Modal size="md" show={openModal} onClose={() => setOpenModal(false)}>
         <Modal.Header>{modalType === "activate" ? "Activar Usuario" : "Eliminar Usuario"}</Modal.Header>
         <Modal.Body>

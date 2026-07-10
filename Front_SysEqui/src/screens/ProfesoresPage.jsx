@@ -6,6 +6,7 @@ import SearchForm from "./forms/SearchFom";
 import Tabla from "../components/Tabla";
 import { UsersAPI } from "../api/UsersAPI";
 import { passwordRulesText, validatePasswordRules } from "../utils/passwordValidation";
+import PageTitle from "../components/PageTitle";
 
 const initialForm = {
   dni: "",
@@ -222,9 +223,7 @@ export default function Profesores() {
 
   return (
     <div className="max-w-6xl mx-auto p-2 flex flex-col gap-6">
-      <h2 className="text-2xl font-semibold text-gray-900 dark:text-white text-center mb-0">
-        Gestión de Profesores
-      </h2>
+      <PageTitle>Gestión de Profesores</PageTitle>
       {showEditModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full shadow-lg">

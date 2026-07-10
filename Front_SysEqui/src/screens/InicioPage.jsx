@@ -3,13 +3,14 @@ import { useUser } from "../context/UserContext";
 import { useState } from "react";
 
 import { Card } from "flowbite-react";
+import PageTitle from "../components/PageTitle";
 const Inicio = () => {
   const { userData } = useUser();
   const [alumno, setAlumno] = useState({});
 
   return (
     <div className="w-full max-w-6xl mx-auto px-4 py-8 flex flex-col items-center justify-center gap-4">
-      <h1 className="text-6xl font-bold">Bienvenido {userData.name + " " + userData.lastname}</h1>
+      <PageTitle>Bienvenido {userData.name + " " + userData.lastname}</PageTitle>
 
       {/* <AdminSidebar /> */}
       {userData?.role === "admin" && <AdminSidebar />}

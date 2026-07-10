@@ -9,6 +9,7 @@ import { PendientesAPI } from "../api/Pendientes";
 import { CursosAPI } from "../api/CursosAPI";
 import TablaReutilizable from "../components/Tabla";
 import ModalNota from "../components/ModalNota";
+import PageTitle from "../components/PageTitle";
 
 export default function AsignarEquivalencia() {
   const { materias } = useMaterias();
@@ -191,7 +192,7 @@ export default function AsignarEquivalencia() {
 
   return (
     <div className="max-w-4xl mx-auto ">
-      <h2 className="text-3xl font-bold mb-4 text-center">Asignar Equivalencias</h2>
+      <PageTitle>Asignar Equivalencias</PageTitle>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
         {/* Card 1 */}
         <Card className="h-full flex flex-col justify-between p-6">

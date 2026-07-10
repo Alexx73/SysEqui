@@ -1,24 +1,18 @@
 import React, { useEffect, useState } from "react";
-import MyForm from "./forms/Myform";
-import ConfirmModal from "../components/ConfirmModal"; // importa el modal personalizado
+import ConfirmModal from "./ConfirmModal";
 import { MateriasAPI } from "../api/MateriasAPI";
 
 // import { HiTrash } from "react-icons/hi";
-import ListaSeleccionable from "../components/ListaSeleccionable";
+import ListaSeleccionable from "./ListaSeleccionable";
 
-import TablaReutilizable from "../components/Tabla";
-import { Toast, ToggleSwitch } from "flowbite-react";
-import { HiLogout, HiCheck, HiTrash } from "react-icons/hi";
-import { IoPersonAdd } from "react-icons/io5";
-
-import { set } from "zod";
-
-import { Button, Card, ListGroup } from "flowbite-react";
+import { Toast } from "flowbite-react";
+import { HiCheck, HiTrash } from "react-icons/hi";
+import { Button, Card } from "flowbite-react";
 import { CursosAPI } from "../api/CursosAPI";
 import { useAlumnosProfesores } from "../utils/useAlumnosProfesores";
 import { PendientesAPI } from "../api/Pendientes";
 
-export default function CrearCursos({ embedded = false, onCursoCreado, onClose } = {}) {
+export default function CrearCursoFormModal({ embedded = false, onCursoCreado, onClose } = {}) {
   const [modoEdicion, setModoEdicion] = useState(false);
   const [datosFormulario, setDatosFormulario] = useState(null);
 

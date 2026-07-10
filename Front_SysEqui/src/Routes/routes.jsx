@@ -25,7 +25,6 @@ import AdminLayout from "../layouts/AdminLayout.jsx";
 import AdminSidebar from "../components/admin/AdminSidebar.jsx";
 import CrearCursoForm from "../screens/forms/CrearCursoForm.jsx";
 // import PreceptoresScreen from "../screens/ProfesoresScreen.jsx";
-import CrearCursos from "../screens/CrearCursosPage.jsx";
 import Docente from "../screens/DocentePage.jsx";
 import ListaDeMaterias from "../screens/ListaDeMateriasPage.jsx";
 
@@ -77,7 +76,6 @@ const Routing = () => {
 <Route path="/listaAlumnos" element={<ListaAlumnos />} />
             <Route path="/crearcursoform" element={<CrearCursoForm />} />
             <Route path="/profesores" element={<Profesores />} />
-            <Route path="/crearcurso" element={<CrearCursos />} />
             <Route path="/administrarcursos" element={<AdministrarCursos />} />
             <Route path="/listaMaterias" element={<ListaDeMaterias />} />
           </Route>

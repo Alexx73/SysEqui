@@ -6,7 +6,7 @@ import { CursosAPI } from "../api/CursosAPI";
 import { useMaterias } from "../utils/useMaterias";
 import { useAlumnosProfesores } from "../utils/useAlumnosProfesores";
 import { useCursos } from "../utils/useCursos";
-import CrearCursos from "./CrearCursosPage";
+import CrearCursoFormModal from "../components/CrearCursoFormModal";
 
 const PAGE_SIZE_OPTIONS = [5, 10, 15, 20];
 
@@ -317,7 +317,7 @@ export default function AdministrarCursos() {
         size="7xl">
         <Modal.Header>Crear Curso</Modal.Header>
         <Modal.Body>
-          <CrearCursos
+          <CrearCursoFormModal
             embedded={true}
             onCursoCreado={cargarDatosCursos}
             onClose={() => setShowCrearCursoModal(false)}

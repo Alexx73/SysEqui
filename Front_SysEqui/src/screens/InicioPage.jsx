@@ -8,7 +8,7 @@ const Inicio = () => {
   const [alumno, setAlumno] = useState({});
 
   return (
-    <div className="flex flex-col items-center justify-center ">
+    <div className="w-full max-w-6xl mx-auto px-4 py-8 flex flex-col items-center justify-center gap-4">
       <h1 className="text-6xl font-bold">Bienvenido {userData.name + " " + userData.lastname}</h1>
 
       {/* <AdminSidebar /> */}

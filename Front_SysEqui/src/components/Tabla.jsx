@@ -43,9 +43,9 @@ export default function TablaReutilizable({
                   <button
                     type="button"
                     onClick={() => onSort(col.clave)}
-                    className="flex w-full cursor-pointer items-center justify-start gap-1 rounded text-left font-semibold uppercase tracking-normal hover:text-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-800">
+                    className="inline-flex cursor-pointer items-center gap-1 bg-transparent p-0 text-left font-semibold uppercase tracking-normal hover:text-blue-300 focus:outline-none">
                     <span>{col.titulo}</span>
-                    <span className="inline-block w-3 text-blue-300">{sortIndicator}</span>
+                    <span className="inline-block w-3 text-blue-300 leading-none">{sortIndicator}</span>
                   </button>
                 ) : (
                   col.titulo
@@ -81,7 +81,8 @@ export default function TablaReutilizable({
             mostrarIconoAprobar) && (
                 <Table.Cell
                   key={`acciones-${fila._id || fila.id || filaIndex}`}
-                  className="flex gap-1 flex-wrap items-center">
+                  className="whitespace-nowrap">
+                  <div className="flex flex-nowrap items-center gap-1">
                   {mostrarIconoEditar && (
                     <button
                       onClick={() => onEditar?.(fila)}
@@ -125,6 +126,7 @@ export default function TablaReutilizable({
                       {LinkTexto}
                     </button>
                   )}
+                  </div>
                 </Table.Cell>
               )}
             </Table.Row>

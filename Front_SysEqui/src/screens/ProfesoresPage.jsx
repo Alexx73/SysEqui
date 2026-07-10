@@ -22,7 +22,28 @@ const dniRegex = /^\d{8}$/;
 const validateDni = (dni) => /^\d{8}$/.test(dni);
 const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 const PAGE_SIZE_OPTIONS = [5, 10, 15, 20];
-const sortStaff = (staff = []) => [...staff].sort((a, b) => a.lastname.localeCompare(b.lastname));
+const sortStaff = (staff = [], sortConfig = { key: "lastname", direction: "asc" }) =>
+  [...staff].sort((a, b) => {
+    const firstValue = a[sortConfig.key];
+    const secondValue = b[sortConfig.key];
+    const direction = sortConfig.direction === "asc" ? 1 : -1;
+
+    if (sortConfig.key === "dni") {
+      const firstNumber = Number(firstValue);
+      const secondNumber = Number(secondValue);
+
+      if (Number.isFinite(firstNumber) && Number.isFinite(secondNumber)) {
+        return (firstNumber - secondNumber) * direction;
+      }
+    }
+
+    return (
+      String(firstValue || "").localeCompare(String(secondValue || ""), "es", {
+        numeric: true,
+        sensitivity: "base",
+      }) * direction
+    );
+  });
 const requiredCreateFields = [
   { key: "dni", label: "DNI" },
   { key: "name", label: "nombre" },
@@ -41,6 +62,7 @@ export default function Profesores() {
   const [showPassword, setShowPassword] = useState(false);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(5);
+  const [sortConfig, setSortConfig] = useState({ key: "lastname", direction: "asc" });
 
   const searchRef = useRef();
 
@@ -52,7 +74,7 @@ export default function Profesores() {
   const cargarStaff = async ({ resetPage = true } = {}) => {
     try {
       const res = await UsersAPI.getAllStaff();
-      const staff = sortStaff(res.data.staff || []);
+      const staff = res.data.staff || [];
       setStaffCompleto(staff);
       setProfesores(staff);
       if (resetPage) setPage(1);
@@ -216,10 +238,19 @@ export default function Profesores() {
     setPage(1);
   };
 
-  const totalPages = Math.max(1, Math.ceil(profesores.length / pageSize));
+  const handleSort = (key) => {
+    setSortConfig((current) => ({
+      key,
+      direction: current.key === key && current.direction === "asc" ? "desc" : "asc",
+    }));
+    setPage(1);
+  };
+
+  const profesoresOrdenados = sortStaff(profesores, sortConfig);
+  const totalPages = Math.max(1, Math.ceil(profesoresOrdenados.length / pageSize));
   const currentPage = Math.min(page, totalPages);
   const startIndex = (currentPage - 1) * pageSize;
-  const profesoresPaginados = profesores.slice(startIndex, startIndex + pageSize);
+  const profesoresPaginados = profesoresOrdenados.slice(startIndex, startIndex + pageSize);
 
   return (
     <div className="max-w-6xl mx-auto p-2 flex flex-col gap-6">
@@ -348,9 +379,9 @@ export default function Profesores() {
         datos={Array.isArray(profesoresPaginados) ? profesoresPaginados : []}
         columnas={[
           { clave: "counter", titulo: "#", render: (_, __, index) => startIndex + index + 1 },
-          { clave: "dni", titulo: "DNI" },
+          { clave: "dni", titulo: "DNI", sortable: true },
           { clave: "name", titulo: "Nombre" },
-          { clave: "lastname", titulo: "Apellido" },
+          { clave: "lastname", titulo: "Apellido", sortable: true },
           { clave: "email", titulo: "Email" },
           { clave: "cellphone", titulo: "Teléfono" },
           { clave: "role", titulo: "Rol" },
@@ -364,6 +395,8 @@ export default function Profesores() {
         onEliminar={handleDelete}
         mostrarIconoEditar={true}
         mostrarIconoEliminar={true}
+        sortConfig={sortConfig}
+        onSort={handleSort}
       />
       {profesores.length > 5 && (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-blue-500/30 bg-blue-500/10 p-3">

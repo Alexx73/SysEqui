@@ -4,6 +4,9 @@ import TablaReutilizable from "../components/Tabla";
 import { UsersAPI } from "../api/UsersAPI";
 import { Card, Modal, Button, Label, TextInput } from "flowbite-react";
 
+const sortAlumnosByLastname = (alumnos = []) =>
+  [...alumnos].sort((a, b) => String(a.lastname || "").localeCompare(String(b.lastname || "")));
+
 export default function ListaAlumnos() {
   const [alumno, setAlumno] = useState([]);
   const [alumnosOriginal, setAlumnoOriginal] = useState([]);
@@ -13,6 +16,31 @@ export default function ListaAlumnos() {
 
   const [showEditModal, setShowEditModal] = useState(false);
   const [editAlumno, setEditAlumno] = useState(null);
+
+  const cargarAlumnos = async () => {
+    try {
+      const res = await UsersAPI.getAllUsers();
+      if (res?.status === 200) {
+        const alumnos = sortAlumnosByLastname((res.data?.users || []).filter((user) => user.role === "student"));
+        setAlumno(alumnos);
+        setAlumnoOriginal(alumnos);
+        setNoResults(alumnos.length === 0);
+        return;
+      }
+      setAlumno([]);
+      setAlumnoOriginal([]);
+      setNoResults(true);
+    } catch (error) {
+      console.error("Error al cargar alumnos: " + error.message);
+      setAlumno([]);
+      setAlumnoOriginal([]);
+      setNoResults(true);
+    }
+  };
+
+  useEffect(() => {
+    cargarAlumnos();
+  }, []);
 
   const getStudentByDni = async (dni) => {
     try {
@@ -36,7 +64,8 @@ export default function ListaAlumnos() {
     try {
       const res = await UsersAPI.updateUserProfileByDni(editAlumno.dni, editAlumno);
       if (res?.status === 200) {
-        setAlumno([editAlumno]);
+        setAlumno((current) => current.map((item) => (item.dni === editAlumno.dni ? editAlumno : item)));
+        setAlumnoOriginal((current) => current.map((item) => (item.dni === editAlumno.dni ? editAlumno : item)));
         setShowEditModal(false);
         return;
       }
@@ -67,7 +96,7 @@ export default function ListaAlumnos() {
           <input
             type="text"
             placeholder="Buscar Alumno por DNI"
-            className="flex-1 p-2 border border-gray-300 rounded bg-slate-600 text-white"
+            className="w-full md:w-1/2 p-2 border border-gray-300 rounded bg-slate-600 text-white"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
@@ -92,6 +121,7 @@ export default function ListaAlumnos() {
       <TablaReutilizable
         datos={alumno}
         columnas={[
+          { clave: "counter", titulo: "#", render: (_, __, index) => index + 1 },
           { clave: "lastname", titulo: "Apellido" },
           { clave: "name", titulo: "Nombre" },
 

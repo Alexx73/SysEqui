@@ -230,7 +230,10 @@ export default function Profesores() {
         (!normalizedFilters.email || String(staff.email || "").toLowerCase().includes(normalizedFilters.email)) &&
         (!normalizedFilters.phone || String(staff.cellphone || "").toLowerCase().includes(normalizedFilters.phone)) &&
         (!normalizedFilters.createdAt || createdAt.includes(normalizedFilters.createdAt)) &&
-        (!normalizedFilters.role || staff.role === normalizedFilters.role)
+        (!normalizedFilters.role || staff.role === normalizedFilters.role) &&
+        (!normalizedFilters.activeStatus ||
+          (normalizedFilters.activeStatus === "active" && staff.isActive) ||
+          (normalizedFilters.activeStatus === "inactive" && !staff.isActive))
       );
     });
 

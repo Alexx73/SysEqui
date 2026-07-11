@@ -20,7 +20,13 @@ export const useCursos = () => {
       const cursosConNombreMateria = data.map((curso) => {
         const materia = materias.find((m) => String(m._id) === String(curso.idMateria));
 
-        const alumnosCompletos = (curso.alumnos || []).map((a) => alumnosById[String(a._id)]).filter(Boolean);
+        const alumnosCompletos = (curso.alumnos || [])
+          .map((a) => {
+            const idAlumno = a?.idAlumno || a?._id || a;
+            const alumno = alumnosById[String(idAlumno)];
+            return alumno ? { ...alumno, idAlumno, nota: a?.nota || 0 } : null;
+          })
+          .filter(Boolean);
 
         const docentesCompletos = (curso.docentesEncargados || [])
           .map((id) => profesoresById[String(id)])

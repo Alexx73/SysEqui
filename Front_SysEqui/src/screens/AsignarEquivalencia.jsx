@@ -10,8 +10,11 @@ import { CursosAPI } from "../api/CursosAPI";
 import TablaReutilizable from "../components/Tabla";
 import ModalNota from "../components/ModalNota";
 import PageTitle from "../components/PageTitle";
+import ConfirmModal from "../components/ConfirmModal";
+import { useToast } from "../components/toastContext";
 
 export default function AsignarEquivalencia() {
+  const { showToast } = useToast();
   const { materias } = useMaterias();
   const location = useLocation();
   const navigate = useNavigate();
@@ -19,7 +22,7 @@ export default function AsignarEquivalencia() {
   const [dniAlumno, setDniAlumno] = useState("");
   const [materiaSeleccionada, setMateriaSeleccionada] = useState("");
   const [alumnoSeleccionado, setAlumnoSeleccionado] = useState(null);
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [confirmModal, setConfirmModal] = useState(null);
   const [materiasAsignadas, setMateriasAsignadas] = useState([]);
   const [showNotaModal, setShowNotaModal] = useState(false);
   const [materiaParaNota, setMateriaParaNota] = useState(null);
@@ -41,11 +44,10 @@ export default function AsignarEquivalencia() {
       const res = await PendientesAPI.getPendientesAll();
       const asignadas = res.data.equivalencias?.filter((m) => m.userId === alumnoId) || [];
       setMateriasAsignadas(asignadas);
-      console.log(materiasAsignadas);
     } catch {
-      alert("Error al obtener materias asignadas.");
+      showToast({ message: "Error al obtener materias asignadas.", type: "error" });
     }
-};
+  };
 
   const buscarAlumnoPorDni = async (e, dniParam = null) => {
     if (e) e.preventDefault();
@@ -57,66 +59,68 @@ export default function AsignarEquivalencia() {
       const alumno = res?.data?.user;
       if (alumno) {
         setAlumnoSeleccionado(alumno);
-        setShowConfirmModal(true);
+        setConfirmModal({
+          title: "Confirmar alumno",
+          message: `¿Confirmar selección de alumno ${alumno.lastname} ${alumno.name} (DNI: ${alumno.dni})?`,
+          confirmLabel: "Confirmar",
+          confirmColor: "warning",
+          onConfirm: () => confirmarAlumnoSeleccionado(alumno),
+        });
       } else {
-        alert("Alumno no encontrado.");
+        showToast({ message: "Alumno no encontrado.", type: "warning" });
       }
     } catch {
-      alert("Error al buscar el alumno.");
+      showToast({ message: "Error al buscar el alumno.", type: "error" });
     }
   };
 
-  const confirmarAlumnoSeleccionado = async () => {
-    setShowConfirmModal(false);
+  const confirmarAlumnoSeleccionado = async (alumno = alumnoSeleccionado) => {
+    setConfirmModal(null);
     setDniAlumno("");
-    if (alumnoSeleccionado?._id) {
-      await fetchMateriasAsignadas(alumnoSeleccionado._id);
-      await fetchCursosByAlumnoId(alumnoSeleccionado._id);
+    if (alumno?._id) {
+      await fetchMateriasAsignadas(alumno._id);
+      await fetchCursosByAlumnoId(alumno._id);
     }
   };
 
-  useEffect(() => {
-    const keyListener = (e) => {
-      if (showConfirmModal && e.key === "Enter") {
-        e.preventDefault();
-        confirmarAlumnoSeleccionado();
-      } else if (showConfirmModal && e.key === "Escape") {
-        setShowConfirmModal(false);
-        document.getElementById("dni").focus();
-      }
-    };
-    window.addEventListener("keydown", keyListener);
-    return () => window.removeEventListener("keydown", keyListener);
-  }, [showConfirmModal]);
-
-  const handleAsignarMateria = async () => {
+  const handleAsignarMateria = () => {
     if (!materiaSeleccionada || !alumnoSeleccionado) return;
 
     const materia = materias.find((m) => m._id === materiaSeleccionada);
-    if (!materia) return alert("Materia no encontrada.");
+    if (!materia) {
+      showToast({ message: "Materia no encontrada.", type: "error" });
+      return;
+    }
 
     const yaAsignada = materiasAsignadas.some(
       (m) => m.name.trim().toLowerCase() === materia.name.trim().toLowerCase(),
     );
-    if (yaAsignada) return alert("Esta materia ya fue asignada a este alumno !!.");
-
-    const confirmar = window.confirm(
-      `¿Asignar materia "${materia.name}" a ${alumnoSeleccionado.lastname} ${alumnoSeleccionado.name}?`,
-    );
-    if (!confirmar) return;
-
-    try {
-      await PendientesAPI.createPendiente({
-        name: materia.name,
-        year: materia.year,
-        userId: alumnoSeleccionado._id,
-      });
-      alert("Materia asignada correctamente.");
-      setMateriaSeleccionada("");
-      await fetchMateriasAsignadas(alumnoSeleccionado._id);
-    } catch {
-      alert("Error al asignar materia.");
+    if (yaAsignada) {
+      showToast({ message: "Esta materia ya fue asignada a este alumno.", type: "warning" });
+      return;
     }
+
+    setConfirmModal({
+      title: "Asignar materia",
+      message: `¿Asignar materia "${materia.name}" a ${alumnoSeleccionado.lastname} ${alumnoSeleccionado.name}?`,
+      confirmLabel: "Asignar",
+      confirmColor: "success",
+      onConfirm: async () => {
+        setConfirmModal(null);
+        try {
+          await PendientesAPI.createPendiente({
+            name: materia.name,
+            year: materia.year,
+            userId: alumnoSeleccionado._id,
+          });
+          showToast({ message: "Materia asignada correctamente.", type: "success" });
+          setMateriaSeleccionada("");
+          await fetchMateriasAsignadas(alumnoSeleccionado._id);
+        } catch {
+          showToast({ message: "Error al asignar materia.", type: "error" });
+        }
+      },
+    });
   };
 
   const materiasOrdenadas = [...materiasAsignadas]
@@ -127,18 +131,23 @@ export default function AsignarEquivalencia() {
       createdAt: new Date(m.createdAt).toLocaleDateString("es-AR"),
     }));
 
-  const handleEliminar = async (materia) => {
-    const confirmar = window.confirm(
-      `¿Eliminar la materia "${materia.name}" asignada a ${alumnoSeleccionado.lastname} ${alumnoSeleccionado.name}?`,
-    );
-    if (!confirmar) return;
-    try {
-      await PendientesAPI.deletePendiente(materia._id);
-      alert("Materia eliminada correctamente.");
-      await fetchMateriasAsignadas(alumnoSeleccionado._id);
-    } catch {
-      alert("Error al eliminar materia.");
-    }
+  const handleEliminar = (materia) => {
+    setConfirmModal({
+      title: "Eliminar materia",
+      message: `¿Eliminar la materia "${materia.name}" asignada a ${alumnoSeleccionado.lastname} ${alumnoSeleccionado.name}?`,
+      confirmLabel: "Eliminar",
+      confirmColor: "failure",
+      onConfirm: async () => {
+        setConfirmModal(null);
+        try {
+          await PendientesAPI.deletePendiente(materia._id);
+          showToast({ message: "Materia eliminada correctamente.", type: "success" });
+          await fetchMateriasAsignadas(alumnoSeleccionado._id);
+        } catch {
+          showToast({ message: "Error al eliminar materia.", type: "error" });
+        }
+      },
+    });
   };
 
   const handleAprobar = (materia) => {
@@ -155,11 +164,11 @@ export default function AsignarEquivalencia() {
     });
 
     if (res.status !== 200) {
-      alert(res.data?.error || "Error al asignar nota.");
+      showToast({ message: res.data?.error || "Error al asignar nota.", type: "error" });
       return;
     }
 
-    alert("Nota asignada correctamente.");
+    showToast({ message: "Nota asignada correctamente.", type: "success" });
     setShowNotaModal(false);
     setMateriaParaNota(null);
     await fetchMateriasAsignadas(alumnoSeleccionado._id);
@@ -180,11 +189,11 @@ export default function AsignarEquivalencia() {
     });
 
     if (res.status !== 200) {
-      alert(res.data?.error || "Error al asignar nota.");
+      showToast({ message: res.data?.error || "Error al asignar nota.", type: "error" });
       return;
     }
 
-    alert("Nota guardada correctamente.");
+    showToast({ message: "Nota guardada correctamente.", type: "success" });
     setShowNotaModal(false);
     setCursoParaNota(null);
     await fetchCursosByAlumnoId(alumnoSeleccionado._id);
@@ -193,12 +202,19 @@ export default function AsignarEquivalencia() {
   return (
     <div className="max-w-4xl mx-auto ">
       <PageTitle>Asignar Equivalencias</PageTitle>
+      <ConfirmModal
+        open={Boolean(confirmModal)}
+        onClose={() => setConfirmModal(null)}
+        onConfirm={confirmModal?.onConfirm}
+        title={confirmModal?.title}
+        message={confirmModal?.message}
+        confirmLabel={confirmModal?.confirmLabel}
+        confirmColor={confirmModal?.confirmColor}
+      />
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-        {/* Card 1 */}
         <Card className="h-full flex flex-col justify-between p-6">
-          <form
-            onSubmit={buscarAlumnoPorDni}
-            className="flex flex-col items-center gap-4 h-full justify-center">
+          <form onSubmit={buscarAlumnoPorDni} className="flex flex-col items-center gap-4 h-full justify-center">
             <label htmlFor="dni" className="text-sm font-medium text-gray-400 self-start">
               DNI del Alumno
             </label>
@@ -216,7 +232,6 @@ export default function AsignarEquivalencia() {
           </form>
         </Card>
 
-        {/* Card 2 */}
         <Card className="h-full flex flex-col justify-between p-6">
           <div className="flex flex-col items-center gap-4 h-full justify-center">
             <p className="text-sm font-bold self-start">
@@ -225,10 +240,7 @@ export default function AsignarEquivalencia() {
                 : "No seleccionado"}
             </p>
 
-            <Select
-              className="w-full"
-              value={materiaSeleccionada}
-              onChange={(e) => setMateriaSeleccionada(e.target.value)}>
+            <Select className="w-full" value={materiaSeleccionada} onChange={(e) => setMateriaSeleccionada(e.target.value)}>
               <option value="">Seleccionar materia</option>
               {materias.map((m) => (
                 <option key={m._id} value={m._id}>
@@ -263,7 +275,6 @@ export default function AsignarEquivalencia() {
                       { clave: "year", titulo: "Año" },
                       { clave: "createdAt", titulo: "Fecha de asignación" },
                     ]}
-                    // mostrarIconoAprobar={true}
                     mostrarIconoEliminar={true}
                     onAprobar={handleAprobar}
                     onEliminar={handleEliminar}
@@ -285,9 +296,7 @@ export default function AsignarEquivalencia() {
           {cursosDelAlumno.length > 0 ? (
             <Accordion className="border-blue-200 dark:border-blue-700">
               <Accordion.Panel>
-                <Accordion.Title className="text-blue-800 dark:text-blue-200">
-                  Cursos asignados
-                </Accordion.Title>
+                <Accordion.Title className="text-blue-800 dark:text-blue-200">Cursos asignados</Accordion.Title>
                 <Accordion.Content>
                   <TablaReutilizable
                     datos={cursosDelAlumno.map((curso, i) => ({ ...curso, numero: i + 1 }))}
@@ -305,32 +314,11 @@ export default function AsignarEquivalencia() {
             </Accordion>
           ) : (
             <>
-              <h3 className="text-xl font-semibold mb-4 text-blue-800 dark:text-blue-200">
-                Cursos asignados
-              </h3>
+              <h3 className="text-xl font-semibold mb-4 text-blue-800 dark:text-blue-200">Cursos asignados</h3>
               <p className="text-blue-700/70 dark:text-blue-300/70">No tiene cursos asignados.</p>
             </>
           )}
         </Card>
-      )}
-
-      {showConfirmModal && alumnoSeleccionado && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full shadow-lg">
-            <h3 className="text-lg font-bold mb-4">
-              ¿Confirmar selección de alumno{" "}
-              {`${alumnoSeleccionado.lastname} ${alumnoSeleccionado.name} (DNI: ${alumnoSeleccionado.dni})`}?
-            </h3>
-            <div className="flex justify-end gap-2">
-              <Button color="gray" onClick={() => setShowConfirmModal(false)}>
-                Cancelar
-              </Button>
-              <Button color="warning" onClick={confirmarAlumnoSeleccionado}>
-                Confirmar
-              </Button>
-            </div>
-          </div>
-        </div>
       )}
 
       <ModalNota
@@ -348,4 +336,3 @@ export default function AsignarEquivalencia() {
     </div>
   );
 }
-

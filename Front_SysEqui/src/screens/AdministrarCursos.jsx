@@ -50,7 +50,14 @@ export default function AdministrarCursos() {
   // Guardar cambios
   const guardarCambios = async () => {
     try {
-      const cursoParaEnviar = { ...cursoSeleccionado };
+      const cursoParaEnviar = {
+        ...cursoSeleccionado,
+        docentesEncargados: (cursoSeleccionado.docentesEncargados || []).map((profesor) => profesor._id || profesor),
+        alumnos: (cursoSeleccionado.alumnos || []).map((alumno) => ({
+          idAlumno: alumno.idAlumno || alumno._id || alumno,
+          nota: alumno.nota || 0,
+        })),
+      };
       delete cursoParaEnviar.materia;
 
       await CursosAPI.modifyCursoById(cursoParaEnviar._id, cursoParaEnviar);

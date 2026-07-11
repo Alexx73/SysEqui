@@ -136,8 +136,12 @@ const cursosService = {
         message: "No se encontró el curso",
       };
     }
-    // Buscamos el alumno dentro del array de alumnos
-    const alumno = curso.alumnos.find((a) => a.idAlumno.toString() === body.idAlumno.toString());
+    // Buscamos el alumno dentro del array de alumnos. Se contempla _id como respaldo
+    // para cursos antiguos guardados antes de normalizar el formato { idAlumno, nota }.
+    const alumno = curso.alumnos.find((a) => {
+      const alumnoId = a.idAlumno || a._id;
+      return alumnoId?.toString() === body.idAlumno.toString();
+    });
     // Si no encontramos al alumno, lanzamos un error
     if (!alumno) {
       throw {
@@ -152,17 +156,18 @@ const cursosService = {
       };
     }
     // Actualizamos la nota
+    const alumnoId = alumno.idAlumno || alumno._id;
     alumno.nota = body.nota;
     if (body.nota >= 6) {
       const materia = await Materias.findById(curso.idMateria);
       await EquivalenciaCompleted.create({
-        userId: alumno.idAlumno,
+        userId: alumnoId,
         name: materia.name,
         year: materia.year,
         note: body.nota,
       });
       await EquivalenciaPendiente.deleteOne({
-        userId: alumno._id,
+        userId: alumnoId,
         name: materia.name,
         year: materia.year
       });

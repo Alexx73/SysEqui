@@ -90,7 +90,14 @@ export default function CrearCursoFormModal({ embedded = false, onCursoCreado, o
   };
   // Confirmar curso
   const confirmarCurso = async () => {
-    const cursoAEnviar = { ...curso };
+    const cursoAEnviar = {
+      ...curso,
+      docentesEncargados: curso.docentesEncargados.map((profesor) => profesor._id || profesor),
+      alumnos: curso.alumnos.map((alumno) => ({
+        idAlumno: alumno.idAlumno || alumno._id || alumno,
+        nota: alumno.nota || 0,
+      })),
+    };
     delete cursoAEnviar.materia; // â›” Eliminar campo solo del envÃ­o
     try {
       await CursosAPI.createCurso(cursoAEnviar);

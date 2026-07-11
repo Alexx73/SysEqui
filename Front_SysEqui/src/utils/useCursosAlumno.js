@@ -20,11 +20,13 @@ export const useCursosAlumno = (materias = []) => {
       const res = await CursosAPI.getAllCursos();
       const cursos = res.data.cursos || [];
 
+      const getAlumnoId = (alumnoCurso) => alumnoCurso?.idAlumno || alumnoCurso?._id || alumnoCurso;
+
       const cursosFiltrados = cursos
-        .filter((curso) => curso.alumnos?.some((a) => (a._id || a) === alumnoId))
+        .filter((curso) => curso.alumnos?.some((a) => String(getAlumnoId(a)) === String(alumnoId)))
         .map((curso) => {
           const materia = materias.find((m) => String(m._id) === String(curso.idMateria));
-          const alumnoData = curso.alumnos?.find((a) => (a._id || a) === alumnoId);
+          const alumnoData = curso.alumnos?.find((a) => String(getAlumnoId(a)) === String(alumnoId));
 
           return {
             ...curso,

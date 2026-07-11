@@ -1,18 +1,19 @@
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import ConfirmModal from "./ConfirmModal";
 import { MateriasAPI } from "../api/MateriasAPI";
 
 // import { HiTrash } from "react-icons/hi";
 import ListaSeleccionable from "./ListaSeleccionable";
 
-import { Toast } from "flowbite-react";
-import { HiCheck, HiTrash } from "react-icons/hi";
+import { HiTrash } from "react-icons/hi";
 import { Button, Card } from "flowbite-react";
 import { CursosAPI } from "../api/CursosAPI";
 import { useAlumnosProfesores } from "../utils/useAlumnosProfesores";
 import { PendientesAPI } from "../api/Pendientes";
+import { useToast } from "./toastContext";
 
 export default function CrearCursoFormModal({ embedded = false, onCursoCreado, onClose } = {}) {
+  const { showToast } = useToast();
   const [modoEdicion, setModoEdicion] = useState(false);
   const [datosFormulario, setDatosFormulario] = useState(null);
 
@@ -24,11 +25,9 @@ export default function CrearCursoFormModal({ embedded = false, onCursoCreado, o
   // Profesores activos
   const profesoresActivos = profesores.filter((p) => p.isActive === true && p.role === "professor");
 
-  // Estado para el toast de confirmación
-  const [showToast, setShowToast] = useState(false);
-  const [materiaActualizada, setMateriaActualizada] = useState(false);
-
+  // Estado para el toast de confirmaciÃ³n
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [confirmModal, setConfirmModal] = useState(null);
   const [materiaToHandle, setMateriaToHandle] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalContent, setModalContent] = useState({
@@ -66,7 +65,7 @@ export default function CrearCursoFormModal({ embedded = false, onCursoCreado, o
 
     if (yaExiste) {
       setModalContent({
-        title: "Atención",
+        title: "AtenciÃ³n",
         message: `El ${tipoLista.slice(0, -1)} ${item[0]} ya fue agregado.`,
         oneButton: true,
       });
@@ -92,11 +91,10 @@ export default function CrearCursoFormModal({ embedded = false, onCursoCreado, o
   // Confirmar curso
   const confirmarCurso = async () => {
     const cursoAEnviar = { ...curso };
-    delete cursoAEnviar.materia; // ⛔ Eliminar campo solo del envío
-    // alert("Curso enviado. Ver consola.");
+    delete cursoAEnviar.materia; // â›” Eliminar campo solo del envÃ­o
     try {
-      const res = await CursosAPI.createCurso(cursoAEnviar);
-      alert("Curso creado con éxito");
+      await CursosAPI.createCurso(cursoAEnviar);
+      showToast({ message: "Curso creado con éxito", type: "success" });
 
       // Resetear estado
       setCurso({
@@ -118,8 +116,8 @@ export default function CrearCursoFormModal({ embedded = false, onCursoCreado, o
       await onCursoCreado?.();
       onClose?.();
     } catch (error) {
-      console.error("❌ Error al crear el curso:", error);
-      alert("Error al crear el curso. Ver consola.");
+      console.error("Error al crear el curso:", error);
+      showToast({ message: error?.message || "Error al crear el curso.", type: "error" });
     }
   };
 
@@ -128,7 +126,7 @@ export default function CrearCursoFormModal({ embedded = false, onCursoCreado, o
       name: materia.name,
       year: materia.year,
       shift: materia.shift,
-      _id: materia._id, // guardamos id para actualizar después
+      _id: materia._id, // guardamos id para actualizar despuÃ©s
     });
     setModoEdicion(true);
   };
@@ -138,11 +136,11 @@ export default function CrearCursoFormModal({ embedded = false, onCursoCreado, o
       if (modoEdicion && datosFormulario?._id) {
         // Actualizar materia
         const response = await MateriasAPI.modifyMateriaById(datosFormulario._id, data);
-        setMateriaActualizada(true);
-        alert("✏️ Materia actualizada", response.data.message);
+        showToast({ message: response.data?.message || "Materia actualizada", type: "success" });
       } else {
         // Crear materia nueva
-        const response = await MateriasAPI.createMateria(data);
+        await MateriasAPI.createMateria(data);
+        showToast({ message: "Materia creada correctamente", type: "success" });
       }
 
       await getMaterias();
@@ -152,7 +150,7 @@ export default function CrearCursoFormModal({ embedded = false, onCursoCreado, o
     } catch (error) {
       setModalContent({
         title: "Error",
-        message: `❌ No se pudo ${modoEdicion ? "actualizar" : "crear"} el curso.\n${error.message}`,
+        message: `âŒ No se pudo ${modoEdicion ? "actualizar" : "crear"} el curso.\n${error.message}`,
         oneButton: true,
       });
       setModalOpen(true);
@@ -160,18 +158,24 @@ export default function CrearCursoFormModal({ embedded = false, onCursoCreado, o
     }
   };
 
-  // ✅ Método para eliminar materia
-  const handleEliminar = async (materia) => {
-    const confirm = window.confirm(`¿Eliminar la materia ${materia.name} ${materia._id}?`);
-    if (!confirm) return;
-
-    try {
-      await MateriasAPI.deleteMateriaById(materia._id);
-      alert("🗑️ Materia eliminada");
-      getMaterias();
-    } catch (error) {
-      alert("❌ Error al eliminar");
-    }
+  // âœ… MÃ©todo para eliminar materia
+  const handleEliminar = (materia) => {
+    setConfirmModal({
+      title: "Eliminar materia",
+      message: `¿Eliminar la materia ${materia.name}?`,
+      confirmLabel: "Eliminar",
+      confirmColor: "failure",
+      onConfirm: async () => {
+        setConfirmModal(null);
+        try {
+          await MateriasAPI.deleteMateriaById(materia._id);
+          showToast({ message: "Materia eliminada", type: "success" });
+          getMaterias();
+        } catch (error) {
+          showToast({ message: error?.message || "Error al eliminar la materia", type: "error" });
+        }
+      },
+    });
   };
 
   const handleToggleActive = (materia) => {
@@ -187,14 +191,13 @@ export default function CrearCursoFormModal({ embedded = false, onCursoCreado, o
 
       if (materiaToHandle.active) {
         await MateriasAPI.deleteMateriaById(materiaToHandle._id);
-        triggerToast();
+        showToast({ message: `Materia ${materiaToHandle.name} desactivada`, type: "success" });
       } else {
         await MateriasAPI.modifyMateria(materiaToHandle._id);
-        triggerToast();
+        showToast({ message: `Materia ${materiaToHandle.name} activada`, type: "success" });
       }
     } catch (error) {
-      alert(`❌ Error al cambiar el estado de la materia ${error.message}`);
-      alert("Error:", error);
+      showToast({ message: `Error al cambiar el estado de la materia: ${error.message}`, type: "error" });
     } finally {
       getMaterias();
       setLoading(false);
@@ -202,21 +205,14 @@ export default function CrearCursoFormModal({ embedded = false, onCursoCreado, o
     }
   };
 
-  const triggerToast = () => {
-    setShowToast(true);
-    setTimeout(() => {
-      setShowToast(false);
-    }, 2000); // 2 segundos
-  };
-
-  //   / 🔁 Obtener materias al cargar
+  //   / ðŸ” Obtener materias al cargar
   const getMaterias = async () => {
     try {
       const res = await MateriasAPI.getMateriasAll();
       const data = Array.isArray(res.data.equivalencias) ? res.data.equivalencias : [];
       setMaterias(data);
     } catch (error) {
-      alert("❌ Error al obtener materias:", error);
+      showToast({ message: error?.message || "Error al obtener materias", type: "error" });
     }
   };
 
@@ -227,7 +223,7 @@ export default function CrearCursoFormModal({ embedded = false, onCursoCreado, o
   //buscar aalumnos con la materia seleccionada
   const buscarAlumnos = async () => {
     if (!curso.idMateria) {
-      alert("Por favor, seleccione una materia.");
+      showToast({ message: "Por favor, seleccione una materia.", type: "warning" });
       return;
     }
 
@@ -237,7 +233,7 @@ export default function CrearCursoFormModal({ embedded = false, onCursoCreado, o
 
       const materiaSeleccionada = materias.find((m) => m._id === curso.idMateria);
       if (!materiaSeleccionada) {
-        alert("Materia no encontrada.");
+        showToast({ message: "Materia no encontrada.", type: "error" });
         return;
       }
 
@@ -248,7 +244,7 @@ export default function CrearCursoFormModal({ embedded = false, onCursoCreado, o
       );
 
       if (alumnosPendientes.length === 0) {
-        alert("No se encontraron alumnos para esta materia.");
+        showToast({ message: "No se encontraron alumnos para esta materia.", type: "info" });
         return;
       } else {
         const alumnosConPendientes = alumnos.filter((a) => alumnosPendientes.some((p) => p.userId === a._id));
@@ -257,7 +253,7 @@ export default function CrearCursoFormModal({ embedded = false, onCursoCreado, o
       }
     } catch (error) {
       console.error("Error al buscar alumnos:", error);
-      alert("Error al buscar alumnos. Ver consola.");
+      showToast({ message: error?.message || "Error al buscar alumnos.", type: "error" });
     }
   };
 
@@ -284,14 +280,14 @@ export default function CrearCursoFormModal({ embedded = false, onCursoCreado, o
             }}
             className="w-full p-2 border rounded bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-white">
             <option value="">Seleccione una materia</option>
-            {/* ordenar materias por año y luego alfabeticamente */}
+            {/* ordenar materias por aÃ±o y luego alfabeticamente */}
             {materias
               .sort((a, b) => {
-                // Primero compara por año
+                // Primero compara por aÃ±o
                 if (a.year !== b.year) {
-                  return a.year - b.year; // orden ascendente por año
+                  return a.year - b.year; // orden ascendente por aÃ±o
                 }
-                // Si el año es igual, compara por nombre (alfabéticamente)
+                // Si el aÃ±o es igual, compara por nombre (alfabÃ©ticamente)
                 return a.name.localeCompare(b.name);
               })
               .map((mat) => (
@@ -474,6 +470,16 @@ export default function CrearCursoFormModal({ embedded = false, onCursoCreado, o
       {/* // En el return del componente principal */}
 
       <ConfirmModal
+        open={Boolean(confirmModal)}
+        onClose={() => setConfirmModal(null)}
+        onConfirm={confirmModal?.onConfirm}
+        title={confirmModal?.title}
+        message={confirmModal?.message}
+        confirmLabel={confirmModal?.confirmLabel}
+        confirmColor={confirmModal?.confirmColor}
+      />
+
+      <ConfirmModal
         open={showConfirmModal}
         onClose={() => setShowConfirmModal(false)}
         onConfirm={handleConfirmAction}
@@ -481,35 +487,6 @@ export default function CrearCursoFormModal({ embedded = false, onCursoCreado, o
         message={`¿Cambiar el estado de ${materiaToHandle?.name} (ID: ${materiaToHandle?._id})?`}
         oneButton={false}
       />
-
-      {showToast && (
-        <div className="fixed bottom-5 right-5 z-50">
-          <Toast className="p-8 gap-4 shadow-xl max-w-md">
-            {materiaToHandle?.active ? (
-              // Estado activo (desactivación)
-              <>
-                <div className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-red-100 text-red-500 dark:bg-red-800 dark:text-red-200">
-                  <HiTrash className="h-5 w-5" />
-                </div>
-                <div className="ml-4 text-base font-semibold text-gray-800 dark:text-white">
-                  Materia {materiaToHandle.name} desactivada .
-                </div>
-              </>
-            ) : (
-              // Estado inactivo (activación)
-              <>
-                <div className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-green-100 text-green-500 dark:bg-green-800 dark:text-green-200">
-                  <HiCheck className="h-5 w-5" />
-                </div>
-                <div className="ml-4 text-base font-semibold text-gray-800 dark:text-white">
-                  Materia {materiaToHandle?.name} activada .
-                </div>
-              </>
-            )}
-            {}
-          </Toast>
-        </div>
-      )}
     </div>
   );
 }

@@ -8,17 +8,20 @@ import { useAlumnosProfesores } from "../utils/useAlumnosProfesores";
 import { useCursos } from "../utils/useCursos";
 import CrearCursoFormModal from "../components/CrearCursoFormModal";
 import PageTitle from "../components/PageTitle";
+import ConfirmModal from "../components/ConfirmModal";
+import { useToast } from "../components/toastContext";
 
 const PAGE_SIZE_OPTIONS = [5, 10, 15, 20];
 
 export default function AdministrarCursos() {
+  const { showToast } = useToast();
   const { alumnos, profesores, getAlumnosYProfesores } = useAlumnosProfesores();
   const { cursos, getCursos, setCursos } = useCursos();
   const { materias, fetchMaterias } = useMaterias();
   const profesoresActivos = profesores.filter((profesor) => profesor.isActive === true);
 
   const [cursoSeleccionado, setCursoSeleccionado] = useState(null);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [confirmModal, setConfirmModal] = useState(null);
   const [showCrearCursoModal, setShowCrearCursoModal] = useState(false);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(5);
@@ -52,7 +55,7 @@ export default function AdministrarCursos() {
 
       await CursosAPI.modifyCursoById(cursoParaEnviar._id, cursoParaEnviar);
 
-      setShowSuccessModal(true);
+      showToast({ message: "Curso actualizado correctamente", type: "success" });
       setCursoSeleccionado(null);
 
       // 🧠 Asegurarse que obtenés materias, alumnos y profesores actualizados
@@ -62,10 +65,8 @@ export default function AdministrarCursos() {
       // 🧠 Llamás con los nuevos datos
       await getCursos(nuevasMaterias, nuevosAlumnos, nuevosProfes);
     } catch (error) {
-      alert("Error al guardar los cambios.");
+      showToast({ message: error?.message || "Error al guardar los cambios.", type: "error" });
     }
-
-    setTimeout(() => setShowSuccessModal(false), 1500);
   };
 
   // Editar curso
@@ -99,7 +100,7 @@ export default function AdministrarCursos() {
         lastname: i.lastname || i.apellido,
       }));
     if (nuevos.length === 0) {
-      alert(`Todos los ${tipo} seleccionados ya están en la lista.`);
+      showToast({ message: `Todos los ${tipo} seleccionados ya están en la lista.`, type: "warning" });
       return;
     }
     setCursoSeleccionado((prev) => ({
@@ -111,12 +112,21 @@ export default function AdministrarCursos() {
 
   // Borrar items de lista
   const borrarItemsLista = (tipo, items) => {
-    if (!window.confirm("¿Estás seguro que deseas eliminar los seleccionados?")) return;
-    setCursoSeleccionado((prev) => ({
-      ...prev,
-      [tipo]: prev[tipo].filter((el) => !items.some((sel) => sel.dni === el.dni)),
-    }));
-    setSelecciones((prev) => ({ ...prev, [tipo]: [] }));
+    setConfirmModal({
+      title: "Eliminar seleccionados",
+      message: "¿Estás seguro que deseas eliminar los seleccionados?",
+      confirmLabel: "Eliminar",
+      confirmColor: "failure",
+      onConfirm: () => {
+        setConfirmModal(null);
+        setCursoSeleccionado((prev) => ({
+          ...prev,
+          [tipo]: prev[tipo].filter((el) => !items.some((sel) => sel.dni === el.dni)),
+        }));
+        setSelecciones((prev) => ({ ...prev, [tipo]: [] }));
+        showToast({ message: "Elementos eliminados de la lista", type: "success" });
+      },
+    });
   };
 
   // Renderizar lista seleccionable
@@ -152,6 +162,15 @@ export default function AdministrarCursos() {
   return (
     <div>
       <PageTitle>Administrar Cursos</PageTitle>
+      <ConfirmModal
+        open={Boolean(confirmModal)}
+        onClose={() => setConfirmModal(null)}
+        onConfirm={confirmModal?.onConfirm}
+        title={confirmModal?.title}
+        message={confirmModal?.message}
+        confirmLabel={confirmModal?.confirmLabel}
+        confirmColor={confirmModal?.confirmColor}
+      />
       <div className="mb-6 flex justify-start">
         <Button color="blue" onClick={() => setShowCrearCursoModal(true)}>
           + Curso
@@ -270,7 +289,7 @@ export default function AdministrarCursos() {
         mostrarIconoEditar={true}
         onEditar={handleEditar}
         mostrarIconoEliminar={true}
-        onEliminar={(curso) => console.log("Eliminar curso:", curso)}
+        onEliminar={() => showToast({ message: "La eliminación de cursos todavía no está implementada.", type: "info" })}
         mostrarLinks={false}
       />
       {cursos.length > 0 && (
@@ -325,7 +344,7 @@ export default function AdministrarCursos() {
           />
         </Modal.Body>
       </Modal>
-      {/* Modal de edición */}
+
       <Modal
         show={!!cursoSeleccionado && materias.length > 0}
         onClose={() => setCursoSeleccionado(null)}
@@ -378,9 +397,7 @@ export default function AdministrarCursos() {
                       <select
                         className="w-full p-2 border rounded"
                         value={cursoSeleccionado.shift}
-                        onChange={(e) =>
-                          setCursoSeleccionado({ ...cursoSeleccionado, shift: e.target.value })
-                        }>
+                        onChange={(e) => setCursoSeleccionado({ ...cursoSeleccionado, shift: e.target.value })}>
                         <option value="diurno">Diurno</option>
                         <option value="nocturno">Nocturno</option>
                       </select>
@@ -393,9 +410,7 @@ export default function AdministrarCursos() {
                         type="date"
                         className="w-full p-2 border rounded"
                         value={cursoSeleccionado.fechaInicio}
-                        onChange={(e) =>
-                          setCursoSeleccionado({ ...cursoSeleccionado, fechaInicio: e.target.value })
-                        }
+                        onChange={(e) => setCursoSeleccionado({ ...cursoSeleccionado, fechaInicio: e.target.value })}
                       />
                     </div>
                     <div>
@@ -426,14 +441,6 @@ export default function AdministrarCursos() {
               </div>
             )}
           </div>
-        </Modal.Body>
-      </Modal>
-
-      {/* Modal de éxito */}
-      <Modal show={showSuccessModal} onClose={() => setShowSuccessModal(false)}>
-        <Modal.Header>✅ Curso Actualizado</Modal.Header>
-        <Modal.Body>
-          <p className="text-green-700">Los cambios fueron guardados correctamente.</p>
         </Modal.Body>
       </Modal>
 

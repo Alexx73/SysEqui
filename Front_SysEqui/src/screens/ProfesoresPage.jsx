@@ -1,12 +1,13 @@
 import { useState, useEffect, useRef } from "react";
-import { Card, Button, TextInput, Label, ToggleSwitch, Toast } from "flowbite-react";
-import { HiCheck } from "react-icons/hi";
+import { Card, Button, TextInput, Label, ToggleSwitch } from "flowbite-react";
 import { HiMiniEye, HiMiniEyeSlash } from "react-icons/hi2";
 import SearchForm from "./forms/SearchFom";
 import Tabla from "../components/Tabla";
 import { UsersAPI } from "../api/UsersAPI";
 import { passwordRulesText, validatePasswordRules } from "../utils/passwordValidation";
 import PageTitle from "../components/PageTitle";
+import ConfirmModal from "../components/ConfirmModal";
+import { useToast } from "../components/toastContext";
 
 const initialForm = {
   dni: "",
@@ -53,11 +54,11 @@ const requiredCreateFields = [
 ];
 
 export default function Profesores() {
+  const { showToast } = useToast();
   const [form, setForm] = useState(initialForm);
   const [profesores, setProfesores] = useState([]);
   const [staffCompleto, setStaffCompleto] = useState([]);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [showToast, setShowToast] = useState("");
+  const [confirmModal, setConfirmModal] = useState(null);
   const [mostrarFormCrearUsuario, setMostrarFormCrearUsuario] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [page, setPage] = useState(1);
@@ -66,9 +67,8 @@ export default function Profesores() {
 
   const searchRef = useRef();
 
-  const triggerToast = (msg) => {
-    setShowToast(msg);
-    setTimeout(() => setShowToast(""), 2000);
+  const closeConfirmModal = () => {
+    setConfirmModal(null);
   };
 
   const cargarStaff = async ({ resetPage = true } = {}) => {
@@ -79,7 +79,7 @@ export default function Profesores() {
       setProfesores(staff);
       if (resetPage) setPage(1);
     } catch (err) {
-      alert("❌ Error al cargar staff", err);
+      showToast({ message: err?.message || "Error al cargar staff", type: "error" });
     }
   };
 
@@ -104,42 +104,58 @@ export default function Profesores() {
     setMostrarFormCrearUsuario(true);
   };
 
-  const handleDelete = async (fila) => {
-    if (window.confirm(`¿Está seguro de eliminar al usuario: ${fila.name} ${fila.lastname}?`)) {
-      try {
-        await UsersAPI.deleteStaffById(fila._id);
-        triggerToast("🗑️ Usuario eliminado");
-        cargarStaff();
-      } catch (err) {
-        alert("❌ Error al eliminar usuario");
-      }
-    }
+  const handleDelete = (fila) => {
+    setConfirmModal({
+      title: "Eliminar usuario",
+      message: `¿Está seguro de eliminar al usuario ${fila.name} ${fila.lastname}?`,
+      confirmLabel: "Eliminar",
+      confirmColor: "failure",
+      onConfirm: async () => {
+        closeConfirmModal();
+        try {
+          await UsersAPI.deleteStaffById(fila._id);
+          showToast({ message: "Usuario eliminado", type: "success" });
+          cargarStaff();
+        } catch (err) {
+          showToast({ message: err?.message || "Error al eliminar usuario", type: "error" });
+        }
+      },
+    });
   };
 
-  const handleToggle = async (fila) => {
+  const handleToggle = (fila) => {
     const accion = fila.isActive ? "deshabilitar" : "habilitar";
-    const icono = fila.isActive ? "⛔" : "✅";
 
-    const confirmado = window.confirm(`¿Deseas ${accion} al usuario: ${fila.name} ${fila.lastname}?`);
-    if (!confirmado) return;
+    setConfirmModal({
+      title: `${accion.charAt(0).toUpperCase() + accion.slice(1)} usuario`,
+      message: `¿Deseas ${accion} al usuario ${fila.name} ${fila.lastname}?`,
+      confirmLabel: accion.charAt(0).toUpperCase() + accion.slice(1),
+      confirmColor: fila.isActive ? "failure" : "success",
+      onConfirm: async () => {
+        closeConfirmModal();
+        try {
+          const response = fila.isActive
+            ? await UsersAPI.deactivateEstado(fila._id)
+            : await UsersAPI.activateEstado(fila._id);
 
-    try {
-      const response = fila.isActive
-        ? await UsersAPI.deactivateEstado(fila._id)
-        : await UsersAPI.activateEstado(fila._id);
+          if (response?.status !== 200) {
+            showToast({
+              message: response?.data?.error || "Error al actualizar el estado del usuario.",
+              type: "error",
+            });
+            return;
+          }
 
-      if (response?.status !== 200) {
-        alert(response?.data?.error || "Error al actualizar el estado del usuario.");
-        return;
-      }
-
-      triggerToast(
-        `${icono} ${fila.name} ${fila.lastname} ha sido ${fila.isActive ? "deshabilitado" : "habilitado"}`,
-      );
-      cargarStaff({ resetPage: false });
-    } catch (err) {
-      alert(err?.message || "Error al actualizar el estado del usuario.");
-    }
+          showToast({
+            message: `${fila.name} ${fila.lastname} ha sido ${fila.isActive ? "deshabilitado" : "habilitado"}`,
+            type: "success",
+          });
+          cargarStaff({ resetPage: false });
+        } catch (err) {
+          showToast({ message: err?.message || "Error al actualizar el estado del usuario.", type: "error" });
+        }
+      },
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -148,62 +164,73 @@ export default function Profesores() {
     if (!form._id) {
       const missingField = requiredCreateFields.find((field) => !String(form[field.key] || "").trim());
       if (missingField) {
-        alert(`El campo ${missingField.label} es obligatorio`);
+        showToast({ message: `El campo ${missingField.label} es obligatorio`, type: "error" });
         return;
       }
     }
 
     if (!validateDni(form.dni)) {
-      alert("El DNI debe tener 8 números");
+      showToast({ message: "El DNI debe tener 8 números", type: "error" });
       return;
     }
 
     if (!form._id && !validateEmail(form.email || "")) {
-      alert("El email debe tener un formato válido");
+      showToast({ message: "El email debe tener un formato válido", type: "error" });
       return;
     }
 
     if (!form._id) {
       const passwordError = validatePasswordRules(form.password || "");
       if (passwordError) {
-        alert(passwordError);
+        showToast({ message: passwordError, type: "error" });
         return;
       }
     }
 
     if (form._id) {
-      setShowEditModal(true);
+      setConfirmModal({
+        title: "Confirmar cambios",
+        message: `¿Deseas guardar los cambios de ${form.name} ${form.lastname}?`,
+        confirmLabel: "Confirmar",
+        confirmColor: "warning",
+        onConfirm: handleUpdateConfirmed,
+      });
     } else {
       try {
         const response = await UsersAPI.createStaff(form);
         if (response.status === 200 || response.status === 201) {
-          triggerToast("✅ Usuario creado correctamente");
+          showToast({ message: "Usuario creado correctamente", type: "success" });
           resetForm();
           cargarStaff();
         } else {
-          alert("Error al crear usuario: " + (response.data?.error || response.data?.message || "Error desconocido"));
+          showToast({
+            message: "Error al crear usuario: " + (response.data?.error || response.data?.message || "Error desconocido"),
+            type: "error",
+          });
         }
       } catch (error) {
-        alert("Error en la solicitud: " + error.message);
+        showToast({ message: "Error en la solicitud: " + error.message, type: "error" });
       }
     }
   };
 
   const handleUpdateConfirmed = async () => {
+    closeConfirmModal();
     try {
-      console.log(form);
       const response = await UsersAPI.updateUserProfileByDni(form.dni, form);
       if (response.status === 200 || response.status === 201) {
-        triggerToast("✅ Usuario actualizado correctamente");
-        setShowEditModal(false);
+        showToast({ message: "Usuario actualizado correctamente", type: "success" });
         resetForm();
         setMostrarFormCrearUsuario(false);
         cargarStaff({ resetPage: false });
       } else {
-        alert("❌ Error al actualizar usuario: " + (response.data?.message || "Error desconocido"));
+        showToast({
+          message: "Error al actualizar usuario: " + (response.data?.message || "Error desconocido"),
+          type: "error",
+        });
       }
     } catch (error) {
-      alert("❌ Error en la solicitud: " + error.message);
+      showToast({ message: "Error en la solicitud: " + error.message, type: "error" });
     }
   };
 
@@ -258,37 +285,15 @@ export default function Profesores() {
   return (
     <div className="max-w-6xl mx-auto p-2 flex flex-col gap-6">
       <PageTitle>Gestión de Profesores</PageTitle>
-      {showEditModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full shadow-lg">
-            <h3 className="text-lg font-bold mb-4">¿Confirmar cambios?</h3>
-            <ul className="text-sm text-gray-700 dark:text-gray-300 space-y-1 mb-4">
-              {Object.entries(form).map(([key, value]) => (
-                <li key={key}>
-                  <strong>{key}:</strong> {value}
-                </li>
-              ))}
-            </ul>
-            <div className="flex justify-end gap-2">
-              <Button color="gray" onClick={() => setShowEditModal(false)}>
-                Cancelar
-              </Button>
-              <Button color="warning" onClick={handleUpdateConfirmed}>
-                Confirmar
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showToast && (
-        <div className="fixed bottom-4 right-4 z-50">
-          <Toast className="px-8 py-8 text-base font-xl shadow-lg rounded-lg max-w-md">
-            {showToast}
-            <HiCheck className="h-5 w-5" />
-          </Toast>
-        </div>
-      )}
+      <ConfirmModal
+        open={Boolean(confirmModal)}
+        onClose={closeConfirmModal}
+        onConfirm={confirmModal?.onConfirm}
+        title={confirmModal?.title}
+        message={confirmModal?.message}
+        confirmLabel={confirmModal?.confirmLabel}
+        confirmColor={confirmModal?.confirmColor}
+      />
 
       <SearchForm ref={searchRef} onSearch={handleSearch} />
 

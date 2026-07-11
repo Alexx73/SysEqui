@@ -11,8 +11,10 @@ import { useCursos } from "../utils/useCursos";
 import { useMaterias } from "../utils/useMaterias";
 import ConfirmModal from "../components/ConfirmModal";
 import ModalNota from "../components/ModalNota";
+import { useToast } from "../components/toastContext";
 
 export default function Docente() {
+  const { showToast } = useToast();
   const [alumnosSeleccionados, setAlumnosSeleccionados] = useState([]);
   const { alumnos, profesores, getAlumnosYProfesores } = useAlumnosProfesores();
   const { materias } = useMaterias();
@@ -78,12 +80,11 @@ const cursosConAlumnos = cursosDelProfesor.map((curso) => {
         setCursosAsignados(cursosConAlumnos);
 
         setTieneCursos(cursosConAlumnos.length > 0);
-        console.log(cursosAsignados);
       } else {
         setTieneCursos(false);
       }
     } catch (error) {
-      console.error("Error al obtener los cursos:", error);
+      showToast({ message: error?.message || "Error al obtener los cursos.", type: "error" });
       setTieneCursos(false);
     }
   };
@@ -118,11 +119,11 @@ const handleConfirmarNota = async (nota) => {
     });
 
     if (res.status !== 200) {
-      alert(res.data?.error || "Error al guardar nota.");
+      showToast({ message: res.data?.error || "Error al guardar nota.", type: "error" });
       return;
     }
 
-    alert("Nota guardada correctamente.");
+    showToast({ message: "Nota guardada correctamente.", type: "success" });
     setShowNotaModal(false);
     buscarCursos();
   };

@@ -15,8 +15,10 @@ import { Button, Checkbox, Label, TextInput } from "flowbite-react";
 
 import { HiMiniEyeSlash } from "react-icons/hi2";
 import { HiMiniEye } from "react-icons/hi2";
+import { useToast } from "../components/toastContext";
 
 export default function Login() {
+  const { showToast } = useToast();
   const alreadyNavigated = useRef(false);
 
   const navigate = useNavigate();
@@ -68,7 +70,7 @@ export default function Login() {
             console.warn("Rol desconocido:", user.role);
         }
       } else {
-        alert(response?.data?.error || "Login fallido");
+        showToast({ message: response?.data?.error || "Login fallido", type: "error" });
       }
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -78,7 +80,7 @@ export default function Login() {
         });
         setErorrs(fieldErrors);
       } else {
-        alert(error?.message || "Error inesperado");
+        showToast({ message: error?.message || "Error inesperado", type: "error" });
       }
     }
   };

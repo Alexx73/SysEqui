@@ -4,6 +4,7 @@ import TablaReutilizable from "../components/Tabla";
 import { UsersAPI } from "../api/UsersAPI";
 import { Card, Modal, Button, Label, TextInput } from "flowbite-react";
 import PageTitle from "../components/PageTitle";
+import { useToast } from "../components/toastContext";
 
 const PAGE_SIZE_OPTIONS = [5, 10, 15, 20];
 
@@ -31,6 +32,7 @@ const sortAlumnos = (alumnos = [], sortConfig = { key: "lastname", direction: "a
   });
 
 export default function ListaAlumnos() {
+  const { showToast } = useToast();
   const [alumno, setAlumno] = useState([]);
   const [alumnosOriginal, setAlumnoOriginal] = useState([]);
 
@@ -58,7 +60,7 @@ export default function ListaAlumnos() {
       setAlumnoOriginal([]);
       setNoResults(true);
     } catch (error) {
-      console.error("Error al cargar alumnos: " + error.message);
+      showToast({ message: error?.message || "Error al cargar alumnos.", type: "error" });
       setAlumno([]);
       setAlumnoOriginal([]);
       setNoResults(true);
@@ -77,12 +79,12 @@ export default function ListaAlumnos() {
         setPage(1);
         setNoResults(false);
       } else {
-        alert("⚠️ No se encontraron resultados para el DNI: " + dni);
+        showToast({ message: `No se encontraron resultados para el DNI: ${dni}`, type: "warning" });
         setAlumno([]);
         setNoResults(true);
       }
     } catch (error) {
-      console.error("❌ Error al obtener Usuario por DNI:", error.message);
+      showToast({ message: error?.message || "Error al obtener usuario por DNI.", type: "error" });
       setAlumno([]);
       setNoResults(true);
     }
@@ -95,12 +97,12 @@ export default function ListaAlumnos() {
         setAlumno((current) => current.map((item) => (item.dni === editAlumno.dni ? editAlumno : item)));
         setAlumnoOriginal((current) => current.map((item) => (item.dni === editAlumno.dni ? editAlumno : item)));
         setShowEditModal(false);
+        showToast({ message: "Alumno actualizado correctamente", type: "success" });
         return;
       }
-      alert(res?.data?.error || "No se pudo actualizar el alumno");
+      showToast({ message: res?.data?.error || "No se pudo actualizar el alumno", type: "error" });
     } catch (error) {
-      console.error("Error al actualizar alumno: " + error.message);
-      alert("No se pudo actualizar el alumno");
+      showToast({ message: error?.message || "No se pudo actualizar el alumno", type: "error" });
     }
   };
   const onEdit = (fila) => {

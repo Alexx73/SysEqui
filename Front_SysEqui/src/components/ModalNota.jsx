@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "flowbite-react";
+import { useToast } from "./toastContext";
 
 export default function ModalNota({ isOpen, onClose, onConfirm, title = "Cargar Nota", nombreAlumno = "", añoMateria = "", initialValue = "" }) {
+  const { showToast } = useToast();
   const [nota, setNota] = useState(initialValue);
   const [botonActivo, setBotonActivo] = useState("confirmar");
   const btnConfirmarRef = useRef(null);
@@ -19,7 +21,7 @@ export default function ModalNota({ isOpen, onClose, onConfirm, title = "Cargar 
         if (botonActivo === "confirmar") {
           const notaNum = Number(nota);
           if (!Number.isInteger(notaNum) || notaNum < 1 || notaNum > 10) {
-            alert("La nota debe ser un número entero entre 1 y 10");
+            showToast({ message: "La nota debe ser un número entero entre 1 y 10", type: "warning" });
             return;
           }
           onConfirm(notaNum);
@@ -48,7 +50,7 @@ export default function ModalNota({ isOpen, onClose, onConfirm, title = "Cargar 
     e.preventDefault();
     const notaNum = Number(nota);
     if (!Number.isInteger(notaNum) || notaNum < 1 || notaNum > 10) {
-      alert("La nota debe ser un número entero entre 1 y 10");
+      showToast({ message: "La nota debe ser un número entero entre 1 y 10", type: "warning" });
       return;
     }
     onConfirm(notaNum);

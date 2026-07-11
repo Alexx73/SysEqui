@@ -2,8 +2,10 @@ import { useState } from "react";
 import { Button, Label, TextInput } from "flowbite-react";
 import { UsersAPI } from "../api/UsersAPI";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "../components/toastContext";
 
 function Registro() {
+  const { showToast } = useToast();
   const navigate = useNavigate();
   // Estado inicial del formulario
   const initialFormValues = {
@@ -60,7 +62,7 @@ function Registro() {
 
         if (response?.status === 201) {
           setErrors("Registro exitoso");
-          alert("Formulario enviado correctamente");
+          showToast({ message: "Formulario enviado correctamente", type: "success" });
 
           // Limpiar el formulario
           setFormValues(initialFormValues);
@@ -71,7 +73,7 @@ function Registro() {
           const errorMessage = response?.data?.message;
 
           setErrors(`Error: ${errorMessage}`);
-          alert(`Error: ${errorMessage}`);
+          showToast({ message: `Error: ${errorMessage}`, type: "error" });
         }
       } catch (error) {
         // Manejo de errores de red o inesperados
@@ -80,7 +82,7 @@ function Registro() {
           error?.message ||
           "Ocurrió un error inesperado. Por favor, intenta nuevamente.";
         setErrors(`Error: ${errorMessage}`);
-        alert(`Error: ${errorMessage}`);
+        showToast({ message: `Error: ${errorMessage}`, type: "error" });
       }
     }
   };

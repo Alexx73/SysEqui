@@ -5,9 +5,9 @@ import { UserProvider } from './context/UserContext.jsx';
 import ToastProvider from './components/ToastProvider.jsx';
 
 createRoot(document.getElementById('root')).render(
-  <UserProvider>
-    <ToastProvider>
+  <ToastProvider>
+    <UserProvider>
       <App />
-    </ToastProvider>
-  </UserProvider>
+    </UserProvider>
+  </ToastProvider>
 );

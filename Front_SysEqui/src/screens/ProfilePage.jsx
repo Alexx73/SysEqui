@@ -5,8 +5,10 @@ import { HiEye, HiEyeOff, HiOutlineArrowLeft } from "react-icons/hi";
 import { useState, useEffect } from "react";
 import { UsersAPI } from "../api/UsersAPI";
 import { passwordRulesText, validatePasswordRules } from "../utils/passwordValidation";
+import { useToast } from "../components/toastContext";
 
 export default function Profile({ isOpen = false, onClose }) {
+  const { showToast } = useToast();
   const [activeForm, setActiveForm] = useState("perfil");
   const { userData, updateUser } = useUser();
   const [editable, setEditable] = useState(false);
@@ -56,7 +58,7 @@ export default function Profile({ isOpen = false, onClose }) {
       setBtnPassword(false);
       setShowPasswords(false);
       setActiveForm("perfil");
-      window.confirm(response.data?.message || "Contraseña actualizada");
+      showToast({ message: response.data?.message || "Contraseña actualizada", type: "success" });
       return;
     }
 
@@ -78,10 +80,10 @@ export default function Profile({ isOpen = false, onClose }) {
       if (response?.status === 200) {
         setEditable(false);
         updateUser(body);
-        window.confirm(response.data.message + "exitosamente");
+        showToast({ message: response.data?.message || "Perfil actualizado correctamente", type: "success" });
       }
     } catch (error) {
-      alert(error);
+      showToast({ message: error?.message || "No se pudo actualizar el perfil", type: "error" });
     }
   };
   return (

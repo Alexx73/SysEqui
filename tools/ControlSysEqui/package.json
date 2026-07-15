@@ -1,0 +1,15 @@
+{
+  "name": "control-sysequi",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Control local de SysEqui en Node.js",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js --open",
+    "check": "node --check server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

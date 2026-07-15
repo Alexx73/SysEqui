@@ -6,6 +6,7 @@ const AvisoSchema = new mongoose.Schema(
     contenido: { type: String, required: true, trim: true, maxlength: 2000 },
     activo: { type: Boolean, default: true },
     createdBy: { type: Number },
+    autor: { type: String, trim: true, maxlength: 160, default: "Administrador" },
   },
   { timestamps: true },
 );

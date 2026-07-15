@@ -12,6 +12,7 @@
  *         titulo: { type: string, maxLength: 120 }
  *         contenido: { type: string, maxLength: 2000 }
  *         activo: { type: boolean }
+ *         autor: { type: string }
  *         createdAt: { type: string, format: date-time }
  *         updatedAt: { type: string, format: date-time }
  */

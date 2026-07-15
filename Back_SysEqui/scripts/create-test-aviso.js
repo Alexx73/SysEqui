@@ -10,7 +10,14 @@ try {
   await mongoose.connect(process.env.MONGO_URI);
   const result = await Avisos.updateOne(
     { titulo },
-    { $setOnInsert: { titulo, contenido: "Este es un aviso de prueba creado desde el nuevo sistema de avisos.", activo: true } },
+    {
+      $set: { autor: "Administrador" },
+      $setOnInsert: {
+        titulo,
+        contenido: "Este es un aviso de prueba creado desde el nuevo sistema de avisos.",
+        activo: true,
+      },
+    },
     { upsert: true },
   );
   console.log(result.upsertedCount ? "Aviso de prueba creado." : "El aviso de prueba ya existía; no se duplicó.");

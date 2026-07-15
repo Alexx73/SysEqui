@@ -40,6 +40,7 @@ const avisosService = {
       contenido: body.contenido.trim(),
       activo: body.activo ?? true,
       createdBy: user.dni,
+      autor: [user.name, user.lastname].filter(Boolean).join(" ") || "Administrador",
     });
   },
   updateAviso: async (id, body, role) => {

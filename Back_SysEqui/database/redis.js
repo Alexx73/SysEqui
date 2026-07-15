@@ -1,63 +1,69 @@
+import dotenv from "dotenv";
 import Redis from "ioredis";
+
+dotenv.config();
 
 export let redis;
 let isRedisOn = false;
-let contRedisMessajeError = 0;
+
+const redisEnabled = process.env.REDIS_ENABLED !== "false";
+const redisHost = process.env.REDIS_HOST || "localhost";
+const redisPort = Number(process.env.REDIS_PORT || 6379);
 
 async function createRedisConnection() {
-  redis = new Redis({
-    host: "localhost",
-    port: 6379,
-    retryStrategy: () => {
-      return 2000;
-    },
-  });
-
-  redis.on("connect", () => {
-    console.log("Conectado a Redis en localhost");
-  });
-
-  redis.on("ready", async () => {
-  try {
-    await redis.flushall();
-    console.log("Redis cache limpiado al conectarse");
-  } catch (e) {
-    console.error("Error limpiando Redis:", e);
+  if (!redisEnabled) {
+    console.log("Redis desactivado por configuración, cache desactivada");
+    return;
   }
 
-    console.log("Redis está listo y operativo");
-    isRedisOn = true;
-    contRedisMessajeError = 0;
-  });
-
-  redis.on("error", () => {
-    //no hace nada, pero tiene que estar para no llenar la consola de errores.
+  redis = new Redis({
+    host: redisHost,
+    port: redisPort,
+    lazyConnect: true,
+    enableOfflineQueue: false,
+    connectTimeout: 1000,
+    maxRetriesPerRequest: 0,
+    retryStrategy: null,
   });
 
   redis.on("close", () => {
-    if (contRedisMessajeError === 0) {
-      console.log("Redis se cerró por error");
-      contRedisMessajeError++;
-    }
     if (isRedisOn) {
       isRedisOn = false;
+      console.log("Redis desconectado, cache desactivada");
     }
   });
+
+  redis.on("error", () => {
+    // El error inicial se informa en el catch de connect().
+    // Este listener evita errores no manejados sin llenar la consola.
+  });
+
+  try {
+    await redis.connect();
+    isRedisOn = true;
+    console.log(`Conectado a Redis en ${redisHost}:${redisPort}`);
+
+    try {
+      await redis.flushall();
+      console.log("Redis cache limpiado al conectarse");
+    } catch (error) {
+      console.error("Error limpiando Redis:", error.message);
+    }
+
+    console.log("Redis está listo y operativo");
+  } catch {
+    isRedisOn = false;
+    console.log("Redis no disponible, cache desactivada");
+  }
 }
 
-async function main() {
-  await createRedisConnection();
-}
-
-main();
+createRedisConnection();
 
 export async function getRedis(key) {
-  if (isRedisOn) {
-    const data = JSON.parse(await redis.get(key));
-    if (data) {
-      return data;
-    }
-  }
+  if (!isRedisOn || !redis) return undefined;
+
+  const data = await redis.get(key);
+  return data ? JSON.parse(data) : undefined;
 }
 
 export async function isRedisReady() {
@@ -65,13 +71,13 @@ export async function isRedisReady() {
 }
 
 export async function setRedis(key, value) {
-  if (isRedisOn) {
+  if (isRedisOn && redis) {
     await redis.set(key, JSON.stringify(value));
   }
 }
 
 export async function setexRedis(key, value, ttl) {
-  if (isRedisOn) {
+  if (isRedisOn && redis) {
     await redis.setex(key, ttl, JSON.stringify(value));
   }
 }

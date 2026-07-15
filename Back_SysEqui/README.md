@@ -30,6 +30,14 @@ pnpm dev
 
 ## Opcional para usar Redis con Docker
 
+Redis se usa como cache opcional. Si no esta disponible, el backend puede iniciar igual y trabajara sin cache.
+
+Para desactivar el intento de conexion en desarrollo local, agregar en `.env`:
+
+```bash
+REDIS_ENABLED=false
+```
+
 ### Usando Docker-Compose
 
 Debes ejecutar el siguiente comando en la terminal:

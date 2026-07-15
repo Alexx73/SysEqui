@@ -84,8 +84,36 @@ function run(file, args, options = {}) {
 }
 
 async function commandExists(command) {
+  if (command === "npm.cmd" && resolvePackageManager()) return true;
   const result = await run("where.exe", [command], { timeoutMs: 5000 });
   return result.code === 0;
+}
+
+function resolveCommand(command) {
+  const pathDirs = (process.env.PATH || "")
+    .split(";")
+    .map((pathDir) => pathDir.trim())
+    .filter(Boolean);
+  const extensions = command.includes(".") ? [""] : [".cmd", ".exe", ".bat", ""];
+
+  for (const pathDir of pathDirs) {
+    for (const extension of extensions) {
+      const candidate = join(pathDir, `${command}${extension}`);
+      if (existsSync(candidate)) return candidate;
+    }
+  }
+
+  return null;
+}
+
+function resolvePackageManager() {
+  const pnpmCommand = resolveCommand("pnpm.cmd") || resolveCommand("pnpm");
+  if (pnpmCommand) return { command: pnpmCommand, name: "pnpm" };
+
+  const npmCommand = resolveCommand("npm.cmd") || resolveCommand("npm");
+  if (npmCommand) return { command: npmCommand, name: "npm" };
+
+  return null;
 }
 
 function isPortOpenOnHost(port, host, timeoutMs = 350) {
@@ -173,10 +201,10 @@ async function ensureMongo() {
   if (start.code !== 0) throw new Error(`No se pudo iniciar MongoDB: ${start.stderr || start.stdout}`);
 }
 
-function startNpmProcess(cwd, logName) {
+function startPackageProcess(cwd, logName, packageManager) {
   const logPath = join(logsDir, logName);
   const logStream = createWriteStream(logPath, { flags: "a" });
-  const child = spawn("cmd.exe", ["/d", "/c", "npm.cmd", "run", "dev"], {
+  const child = spawn("cmd.exe", ["/d", "/c", packageManager.command, "run", "dev"], {
     cwd,
     windowsHide: true,
     stdio: ["ignore", "pipe", "pipe"],
@@ -197,8 +225,14 @@ function startNpmProcess(cwd, logName) {
     logStream.end();
   });
 
-  log(`Proceso iniciado PID ${child.pid}. Log: ${logPath}`);
+  log(`Proceso ${packageManager.name} iniciado PID ${child.pid}. Log: ${logPath}`);
   return child.pid;
+}
+
+function startNpmProcess(cwd, logName) {
+  const packageManager = resolvePackageManager();
+  if (!packageManager) throw new Error("No se encontro pnpm.cmd ni npm.cmd. Instala pnpm/npm o agregalo al PATH.");
+  return startPackageProcess(cwd, logName, packageManager);
 }
 
 async function startAll() {

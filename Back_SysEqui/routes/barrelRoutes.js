@@ -4,6 +4,7 @@ import completadasRoutes from "./equivalencias-completadas.js";
 import usersRoutes from "./users.js";
 import materiasRoutes from "./materias.js";
 import cursosRoutes from "./cursos.js";
+import avisosRoutes from "./avisos.js";
 
 const routes = {
   pendientesRoutes,
@@ -11,6 +12,7 @@ const routes = {
   usersRoutes,
   materiasRoutes,
   cursosRoutes,
+  avisosRoutes,
 };
 
 export default routes;

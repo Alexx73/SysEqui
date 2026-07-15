@@ -94,6 +94,9 @@ app.use("/materias", routes.materiasRoutes);
 // Usar las rutas de cursos
 app.use("/cursos", routes.cursosRoutes);
 
+// Usar las rutas de avisos
+app.use("/avisos", routes.avisosRoutes);
+
 // Ruta raíz
 app.get("/", (req, res) => {
   res.send("Backend SysEqui funcionando");

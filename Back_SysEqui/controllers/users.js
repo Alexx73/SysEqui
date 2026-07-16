@@ -26,7 +26,7 @@ const userController = {
       // Devolvemos el mensaje de usuario registrado y el usuario creado
       res.status(200).json({ message: "Sesión iniciada", userData });
     } catch (error) {
-      res.status(error.status || 500).json({ error: error.message });
+      res.status(error.status || 500).json({ error: error.message, ...(error.code && { code: error.code }) });
     }
   },
   getUser: async (req, res) => {
@@ -91,13 +91,31 @@ const userController = {
       // Devolvemos el mensaje de usuario registrado y el usuario creado
       res.status(200).json({ message: "Perfil actualizado" });
     } catch (error) {
-      res.status(error.status || 500).json({ error: error.message });
+      res.status(error.status || 500).json({ error: error.message, ...(error.code && { code: error.code }) });
     }
   },
   updateOwnPassword: async (req, res) => {
     try {
       await userService.updateOwnPassword(req.user.dni, req.body);
       res.status(200).json({ message: "Contraseña actualizada" });
+    } catch (error) {
+      res.status(error.status || 500).json({ error: error.message, ...(error.code && { code: error.code }) });
+    }
+  },
+  requestPasswordReset: async (req, res) => {
+    try {
+      const expiresAt = await userService.requestPasswordReset(req.user.role, req.user.dni, req.params.dni);
+      res.status(200).json({ message: "Restablecimiento solicitado", expiresAt });
+    } catch (error) {
+      const response = { error: error.message };
+      if (error.code) response.code = error.code;
+      res.status(error.status || 500).json(response);
+    }
+  },
+  completePasswordReset: async (req, res) => {
+    try {
+      await userService.completePasswordReset(req.body);
+      res.status(200).json({ message: "Contraseña restablecida correctamente" });
     } catch (error) {
       res.status(error.status || 500).json({ error: error.message });
     }

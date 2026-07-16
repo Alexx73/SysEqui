@@ -27,7 +27,16 @@ export default function TablaReutilizable({
   onDobleClickFila,
   sortConfig,
   onSort,
+  accionesAdicionales = [],
 }) {
+  const tieneAcciones =
+    mostrarIconoEditar ||
+    mostrarIconoEliminar ||
+    mostrarLinks ||
+    mostrarIconoActivo ||
+    linkMateria ||
+    mostrarIconoAprobar ||
+    accionesAdicionales.length > 0;
   return (
     <div className="overflow-x-auto">
       <Table hoverable>
@@ -53,12 +62,7 @@ export default function TablaReutilizable({
               </Table.HeadCell>
             );
           })}
-{(mostrarIconoEditar ||
-            mostrarIconoEliminar ||
-            mostrarLinks ||
-            mostrarIconoActivo ||
-            linkMateria ||
-            mostrarIconoAprobar) && <Table.HeadCell key="acciones-head">Acciones</Table.HeadCell>}
+{tieneAcciones && <Table.HeadCell key="acciones-head">Acciones</Table.HeadCell>}
         </Table.Head>
 
         <Table.Body className="divide-y [&>*]:py-">
@@ -73,12 +77,7 @@ export default function TablaReutilizable({
                 </Table.Cell>
               ))}
 
-{(mostrarIconoEditar ||
-            mostrarIconoEliminar ||
-            mostrarLinks ||
-            mostrarIconoActivo ||
-            linkMateria ||
-            mostrarIconoAprobar) && (
+{tieneAcciones && (
                 <Table.Cell
                   key={`acciones-${fila._id || fila.id || filaIndex}`}
                   className="whitespace-nowrap">
@@ -126,6 +125,21 @@ export default function TablaReutilizable({
                       {LinkTexto}
                     </button>
                   )}
+                  {accionesAdicionales.map((accion, index) => {
+                    if (accion.visible && !accion.visible(fila)) return null;
+                    const Icono = accion.icono;
+                    return (
+                      <button
+                        key={`${accion.label || "accion"}-${index}`}
+                        type="button"
+                        onClick={() => accion.onClick?.(fila)}
+                        className={accion.className || "rounded bg-blue-600 p-1 text-white"}
+                        title={accion.label}
+                        aria-label={`${accion.label}${fila.name ? ` de ${fila.name} ${fila.lastname || ""}` : ""}`}>
+                        {Icono ? <Icono className="h-5 w-5" /> : accion.label}
+                      </button>
+                    );
+                  })}
                   </div>
                 </Table.Cell>
               )}

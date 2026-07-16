@@ -5,6 +5,8 @@ import { UsersAPI } from "../api/UsersAPI";
 import { Card, Modal, Button, Label, TextInput } from "flowbite-react";
 import PageTitle from "../components/PageTitle";
 import { useToast } from "../components/toastContext";
+import ConfirmModal from "../components/ConfirmModal";
+import { HiKey } from "react-icons/hi";
 
 const PAGE_SIZE_OPTIONS = [5, 10, 15, 20];
 
@@ -44,6 +46,7 @@ export default function ListaAlumnos() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [sortConfig, setSortConfig] = useState({ key: "lastname", direction: "asc" });
+  const [resetUser, setResetUser] = useState(null);
 
   const cargarAlumnos = async () => {
     try {
@@ -110,6 +113,17 @@ export default function ListaAlumnos() {
     setShowEditModal(true);
   };
 
+  const confirmPasswordReset = async () => {
+    const selected = resetUser;
+    setResetUser(null);
+    const response = await UsersAPI.requestPasswordReset(selected.dni);
+    if (response?.status === 200) {
+      showToast({ message: `Restablecimiento habilitado por 24 horas para ${selected.name} ${selected.lastname}`, type: "success" });
+    } else {
+      showToast({ message: response?.data?.error || "No se pudo solicitar el restablecimiento", type: "error" });
+    }
+  };
+
   const handleSort = (key) => {
     setSortConfig((current) => ({
       key,
@@ -127,6 +141,15 @@ export default function ListaAlumnos() {
   return (
     <div className="w-full max-w-6xl mx-auto px-4 flex flex-col gap-4">
       <PageTitle>Lista de Alumnos</PageTitle>
+      <ConfirmModal
+        open={Boolean(resetUser)}
+        onClose={() => setResetUser(null)}
+        onConfirm={confirmPasswordReset}
+        title="Restablecer contraseña"
+        message={`¿Habilitar durante 24 horas el cambio de contraseña de ${resetUser?.name || ""} ${resetUser?.lastname || ""} (DNI ${resetUser?.dni || ""})? Durante ese período, quien conozca el DNI podrá establecer una contraseña nueva.`}
+        confirmLabel="Restablecer"
+        confirmColor="warning"
+      />
       <Card className="mb-4">
         <p className="text-gray-700 dark:text-gray-300"></p>
         <form
@@ -179,6 +202,14 @@ export default function ListaAlumnos() {
         onEditar={(fila) => onEdit(fila)}
         sortConfig={sortConfig}
         onSort={handleSort}
+        accionesAdicionales={[
+          {
+            label: "Restablecer contraseña",
+            icono: HiKey,
+            onClick: setResetUser,
+            className: "rounded bg-violet-600 p-1 text-white hover:bg-violet-700",
+          },
+        ]}
       />
       {alumno.length > 5 && (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-blue-500/30 bg-blue-500/10 p-3">

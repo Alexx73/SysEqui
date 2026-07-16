@@ -98,6 +98,20 @@ export const UsersAPI = {
       return error.response;
     }
   },
+  requestPasswordReset: async (dni) => {
+    try {
+      return await axios.post(`${baseRoute}/${dni}/request-password-reset`);
+    } catch (error) {
+      return error.response;
+    }
+  },
+  completePasswordReset: async (body) => {
+    try {
+      return await axios.post(`${baseRoute}/complete-password-reset`, body);
+    } catch (error) {
+      return error.response;
+    }
+  },
   getUnauthUsers: async () => {
     try {
       const response = await axios.get(`${baseRoute}/unauth`);

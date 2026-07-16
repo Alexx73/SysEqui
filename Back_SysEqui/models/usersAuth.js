@@ -6,6 +6,10 @@ const UsersAuthSchema = new mongoose.Schema(
     password: { type: String, required: true },
     LastLogin: { type: Date, default: Date.now },
     role: { type: String, default: "student" },
+    passwordResetRequired: { type: Boolean, default: false },
+    passwordResetRequestedAt: { type: Date },
+    passwordResetExpiresAt: { type: Date },
+    passwordResetRequestedBy: { type: Number },
   },
   { versionKey: false },
 );

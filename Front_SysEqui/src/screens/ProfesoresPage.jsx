@@ -8,6 +8,7 @@ import { passwordRulesText, validatePasswordRules } from "../utils/passwordValid
 import PageTitle from "../components/PageTitle";
 import ConfirmModal from "../components/ConfirmModal";
 import { useToast } from "../components/toastContext";
+import { HiKey } from "react-icons/hi";
 
 const initialForm = {
   dni: "",
@@ -118,6 +119,24 @@ export default function Profesores() {
           cargarStaff();
         } catch (err) {
           showToast({ message: err?.message || "Error al eliminar usuario", type: "error" });
+        }
+      },
+    });
+  };
+
+  const handlePasswordReset = (fila) => {
+    setConfirmModal({
+      title: "Restablecer contraseña",
+      message: `¿Habilitar durante 24 horas el cambio de contraseña de ${fila.name} ${fila.lastname} (DNI ${fila.dni})? Durante ese período, quien conozca el DNI podrá establecer una contraseña nueva.`,
+      confirmLabel: "Restablecer",
+      confirmColor: "warning",
+      onConfirm: async () => {
+        closeConfirmModal();
+        const response = await UsersAPI.requestPasswordReset(fila.dni);
+        if (response?.status === 200) {
+          showToast({ message: `Restablecimiento habilitado por 24 horas para ${fila.name} ${fila.lastname}`, type: "success" });
+        } else {
+          showToast({ message: response?.data?.error || "No se pudo solicitar el restablecimiento", type: "error" });
         }
       },
     });
@@ -405,6 +424,15 @@ export default function Profesores() {
         mostrarIconoEliminar={true}
         sortConfig={sortConfig}
         onSort={handleSort}
+        accionesAdicionales={[
+          {
+            label: "Restablecer contraseña",
+            icono: HiKey,
+            onClick: handlePasswordReset,
+            visible: (fila) => fila.role !== "admin",
+            className: "rounded bg-violet-600 p-1 text-white hover:bg-violet-700",
+          },
+        ]}
       />
       {profesores.length > 5 && (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-blue-500/30 bg-blue-500/10 p-3">

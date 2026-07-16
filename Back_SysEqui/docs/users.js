@@ -485,6 +485,51 @@
 //GET - /users/{dni}
 /**
  * @swagger
+ * /users/{dni}/request-password-reset:
+ *   post:
+ *     tags: [Users]
+ *     summary: Solicita el cambio obligatorio de contraseña durante 24 horas (solo admin)
+ *     parameters:
+ *       - in: path
+ *         name: dni
+ *         required: true
+ *         schema: { type: number }
+ *     responses:
+ *       200: { description: Restablecimiento solicitado }
+ *       400: { description: DNI inválido o cuenta inactiva }
+ *       403: { description: Sin permiso o cuenta administrativa }
+ *       404: { description: Usuario no encontrado }
+ */
+
+/**
+ * @swagger
+ * /users/complete-password-reset:
+ *   post:
+ *     tags: [Users]
+ *     security: []
+ *     summary: Guarda la contraseña nueva de una solicitud vigente
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [dni, newPassword, confirmPassword]
+ *             properties:
+ *               dni: { type: number }
+ *               newPassword: { type: string, minLength: 8, maxLength: 20 }
+ *               confirmPassword: { type: string }
+ *     responses:
+ *       200: { description: Contraseña restablecida }
+ *       400: { description: Datos o contraseña inválidos }
+ *       404: { description: Usuario no encontrado }
+ *       409: { description: No hay solicitud pendiente }
+ *       410: { description: Solicitud vencida }
+ */
+
+//GET - /users/{dni}
+/**
+ * @swagger
  * /users/{dni}:
  *   get:
  *     tags: [Users]

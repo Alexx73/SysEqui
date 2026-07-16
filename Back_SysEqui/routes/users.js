@@ -12,6 +12,8 @@ router.get("/", userController.getAllUsers);
 router.get("/profile", userController.getOwnProfile);
 router.patch("/profile", userController.updateOwnProfile);
 router.patch("/profile/password", userController.updateOwnPassword);
+router.post("/complete-password-reset", userController.completePasswordReset);
+router.post("/:dni/request-password-reset", userController.requestPasswordReset);
 router.post("/register", userController.registerUser);
 router.post("/createStaff", userController.createStaff);
 router.get("/staff", userController.getAllStaff);

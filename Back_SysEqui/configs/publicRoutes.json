@@ -8,6 +8,10 @@
     "path": "/users/login"
   },
   {
+    "method": "POST",
+    "path": "/users/complete-password-reset"
+  },
+  {
     "method": "GET",
     "path": "/"
   }

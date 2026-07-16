@@ -113,6 +113,20 @@ const userService = {
       };
     }
     // Validar que la contraseña sea correcta
+    if (userAuth.passwordResetRequired) {
+      const resetExpired = !userAuth.passwordResetExpiresAt || userAuth.passwordResetExpiresAt <= new Date();
+      throw resetExpired
+        ? {
+            status: 403,
+            code: "PASSWORD_RESET_EXPIRED",
+            message: "La solicitud de restablecimiento venció. Contacte al administrador para renovarla.",
+          }
+        : {
+            status: 428,
+            code: "PASSWORD_RESET_REQUIRED",
+            message: "Debe establecer una contraseña nueva para continuar.",
+          };
+    }
     const isMatch = await bcrypt.compare(password, userAuth.password);
     // Si la contraseña no es correcta, lanzar una excepción
     if (!isMatch) {
@@ -309,6 +323,75 @@ const userService = {
     await userAuth.save();
   },
   // Función para validar un usuario
+  requestPasswordReset: async (adminRole, adminDni, targetDni) => {
+    if (adminRole !== "admin") {
+      throw { status: 403, message: "Solo un administrador puede restablecer contraseñas" };
+    }
+    const dni = Number(targetDni);
+    if (!Number.isInteger(dni) || dni <= 0) throw { status: 400, message: "DNI inválido" };
+
+    const profile = await UsersProfile.findOne({ dni });
+    if (!profile) throw { status: 404, message: "Usuario no encontrado" };
+    if (!profile.isActive) throw { status: 400, message: "No se puede restablecer una cuenta inactiva" };
+    if (!["student", "professor", "preceptor"].includes(profile.role)) {
+      throw { status: 403, message: "No se puede restablecer la contraseña de un administrador" };
+    }
+
+    const requestedAt = new Date();
+    const expiresAt = new Date(requestedAt.getTime() + 24 * 60 * 60 * 1000);
+    const userAuth = await UsersAuth.findOneAndUpdate(
+      { dni, role: { $in: ["student", "professor", "preceptor"] } },
+      {
+        $set: {
+          passwordResetRequired: true,
+          passwordResetRequestedAt: requestedAt,
+          passwordResetExpiresAt: expiresAt,
+          passwordResetRequestedBy: adminDni,
+        },
+      },
+      { new: true },
+    );
+    if (!userAuth) throw { status: 404, message: "Cuenta de acceso no encontrada" };
+    return expiresAt;
+  },
+  completePasswordReset: async (body) => {
+    const { dni, newPassword, confirmPassword } = body;
+    const numericDni = Number(dni);
+    if (!Number.isInteger(numericDni) || numericDni <= 0 || !newPassword || !confirmPassword) {
+      throw { status: 400, message: "DNI, contraseña nueva y confirmación son obligatorios" };
+    }
+    if (newPassword !== confirmPassword) throw { status: 400, message: "Las contraseñas no coinciden" };
+    const passwordError = validatePassword(newPassword);
+    if (passwordError !== "") throw { status: 400, message: passwordError };
+
+    const password = await bcrypt.hash(newPassword, 10);
+    const updated = await UsersAuth.findOneAndUpdate(
+      {
+        dni: numericDni,
+        passwordResetRequired: true,
+        passwordResetExpiresAt: { $gt: new Date() },
+        role: { $in: ["student", "professor", "preceptor"] },
+      },
+      {
+        $set: { password },
+        $unset: {
+          passwordResetRequired: "",
+          passwordResetRequestedAt: "",
+          passwordResetExpiresAt: "",
+          passwordResetRequestedBy: "",
+        },
+      },
+      { new: true },
+    );
+    if (updated) return;
+
+    const account = await UsersAuth.findOne({ dni: numericDni }).select("passwordResetRequired passwordResetExpiresAt");
+    if (!account) throw { status: 404, message: "Usuario no encontrado" };
+    if (!account.passwordResetRequired) {
+      throw { status: 409, message: "No existe una solicitud de restablecimiento vigente" };
+    }
+    throw { status: 410, message: "La solicitud venció. Contacte al administrador para renovarla" };
+  },
   validateUser: async (accountId) => {
     // Validar que el id corresponda a un usuario inactivo
     const unUser = await UsersUnAuth.findOne({

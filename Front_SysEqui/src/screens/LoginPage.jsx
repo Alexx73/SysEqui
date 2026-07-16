@@ -69,6 +69,9 @@ export default function Login() {
           default:
             console.warn("Rol desconocido:", user.role);
         }
+      } else if (response?.status === 428 || response?.data?.code === "PASSWORD_RESET_REQUIRED") {
+        sessionStorage.setItem("passwordResetDni", String(body.dni));
+        navigate("/restablecer-password");
       } else {
         showToast({ message: response?.data?.error || "Login fallido", type: "error" });
       }

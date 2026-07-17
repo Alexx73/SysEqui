@@ -81,6 +81,9 @@ app.use(middlewares.timeCalcMiddleware);
 // Middleware para manejar autenticación
 app.use(middlewares.authMiddleware);
 
+// Registrar actividad funcional sin modificar las respuestas
+app.use(middlewares.activityLogs);
+
 // Usar las rutas de equivalencias
 app.use("/pendientes", routes.pendientesRoutes);
 app.use("/completadas", routes.completadasRoutes);

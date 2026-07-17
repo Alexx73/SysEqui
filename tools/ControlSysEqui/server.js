@@ -24,6 +24,7 @@ const ports = {
 
 const mongoContainerName = "sysequi-mongodb";
 const clients = new Set();
+const activityHistory = [];
 let operationRunning = false;
 
 mkdirSync(logsDir, { recursive: true });
@@ -36,6 +37,17 @@ function log(message) {
   const line = `[${now()}] ${message}`;
   appendFileSync(join(logsDir, "control.log"), `${line}\n`, "utf8");
   broadcast("log", { line });
+}
+
+function activity(line) {
+  const cleanLine = line.replace(/\x1b\[[0-9;]*m/g, "").trim();
+  const level = cleanLine.match(/\[ACTIVIDAD\]\[(OK|AVISO|ERROR)\]/)?.[1] || "OK";
+  const message = cleanLine.replace(/^.*?\[ACTIVIDAD\]\[(?:OK|AVISO|ERROR)\]\s*/, "");
+  const item = { time: now(), level, message };
+  activityHistory.push(item);
+  if (activityHistory.length > 100) activityHistory.shift();
+  appendFileSync(join(logsDir, "activity.log"), `[${item.time}] [${level}] ${message}\n`, "utf8");
+  broadcast("activity", item);
 }
 
 function broadcast(type, payload) {
@@ -213,7 +225,10 @@ function startPackageProcess(cwd, logName, packageManager) {
   child.stdout.on("data", (chunk) => {
     const text = chunk.toString();
     logStream.write(text);
-    for (const line of text.split(/\r?\n/).filter(Boolean)) log(`${logName}: ${line}`);
+    for (const line of text.split(/\r?\n/).filter(Boolean)) {
+      if (logName === "backend.log" && line.includes("[ACTIVIDAD]")) activity(line);
+      else log(`${logName}: ${line}`);
+    }
   });
   child.stderr.on("data", (chunk) => {
     const text = chunk.toString();
@@ -475,7 +490,15 @@ function html() {
     .open { background: #2563eb; }
     .secondary { background: #4b5563; }
     progress { width: 100%; height: 12px; accent-color: #38bdf8; margin-bottom: 12px; }
-    #logs { height: 285px; overflow: auto; white-space: pre-wrap; background: #030712; border: 1px solid #374151; border-radius: 8px; padding: 10px; font: 12px Consolas, monospace; color: #e5e7eb; }
+    .tabs { display: flex; gap: 8px; margin-bottom: 8px; }
+    .tab { background: #374151; padding: 7px 14px; }
+    .tab.active { background: #2563eb; }
+    .log-view { height: 250px; overflow: auto; white-space: pre-wrap; background: #030712; border: 1px solid #374151; border-radius: 8px; padding: 10px; font: 12px Consolas, monospace; color: #e5e7eb; }
+    .hidden { display: none; }
+    .activity-line { display: block; margin-bottom: 7px; white-space: normal; }
+    .activity-line.ok { color: #4ade80; }
+    .activity-line.aviso { color: #facc15; }
+    .activity-line.error { color: #f87171; }
     @media (max-width: 560px) {
       .cards { grid-template-columns: 1fr; }
       .buttons { grid-template-columns: 1fr 1fr; }
@@ -501,7 +524,12 @@ function html() {
       <button id="close" class="secondary">Cerrar</button>
     </section>
     <progress id="progress" value="0" max="100"></progress>
-    <section id="logs"></section>
+    <div class="tabs" role="tablist" aria-label="Registros del sistema">
+      <button id="activityTab" class="tab active" type="button">Actividad</button>
+      <button id="technicalTab" class="tab" type="button">Técnico</button>
+    </div>
+    <section id="activityLogs" class="log-view" aria-live="polite"></section>
+    <section id="technicalLogs" class="log-view hidden"></section>
   </main>
   <script>
     const $ = (id) => document.getElementById(id);
@@ -520,6 +548,15 @@ function html() {
     $('front').onclick = () => post('/api/open-frontend');
     $('logsBtn').onclick = () => post('/api/open-logs');
     $('close').onclick = async () => { await post('/api/shutdown'); window.close(); };
+    const showTab = (name) => {
+      const activitySelected = name === 'activity';
+      $('activityLogs').classList.toggle('hidden', !activitySelected);
+      $('technicalLogs').classList.toggle('hidden', activitySelected);
+      $('activityTab').classList.toggle('active', activitySelected);
+      $('technicalTab').classList.toggle('active', !activitySelected);
+    };
+    $('activityTab').onclick = () => showTab('activity');
+    $('technicalTab').onclick = () => showTab('technical');
     source.addEventListener('status', (event) => {
       const s = JSON.parse(event.data);
       setOnline('database', s.database);
@@ -542,8 +579,18 @@ function html() {
     });
     source.addEventListener('progress', (event) => $('progress').value = JSON.parse(event.data).value);
     source.addEventListener('log', (event) => {
-      const logs = $('logs');
+      const logs = $('technicalLogs');
       logs.textContent += JSON.parse(event.data).line + '\\n';
+      logs.scrollTop = logs.scrollHeight;
+    });
+    source.addEventListener('activity', (event) => {
+      const item = JSON.parse(event.data);
+      const line = document.createElement('span');
+      line.className = 'activity-line ' + item.level.toLowerCase();
+      line.textContent = '[' + item.time + '] ' + item.message;
+      const logs = $('activityLogs');
+      logs.appendChild(line);
+      while (logs.children.length > 100) logs.firstChild.remove();
       logs.scrollTop = logs.scrollHeight;
     });
     source.addEventListener('error', (event) => alert(JSON.parse(event.data).message));
@@ -568,6 +615,9 @@ const server = createServer(async (req, res) => {
     clients.add(res);
     req.on("close", () => clients.delete(res));
     res.write(`event: log\ndata: ${JSON.stringify({ line: `[${now()}] Panel conectado.` })}\n\n`);
+    for (const item of activityHistory) {
+      res.write(`event: activity\ndata: ${JSON.stringify(item)}\n\n`);
+    }
     res.write(`event: status\ndata: ${JSON.stringify(await getStatus())}\n\n`);
     return;
   }

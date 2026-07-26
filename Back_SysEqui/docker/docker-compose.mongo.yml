@@ -1,14 +1,14 @@
 services:
   mongo:
-    image: mongo:latest
+    image: mongo:8
     restart: always
-    container_name: mongo
+    container_name: sysequi-mongodb
     ports:
       - "27017:27017"
     networks:
       - mongo_network
     volumes:
-      - mongo_data:/data/db
+      - sysequi-mongodb-data:/data/db
 
   # mongo-express:
   #   image: mongo-express:latest
@@ -29,5 +29,5 @@ networks:
     driver: bridge
 
 volumes:
-  mongo_data:
-    driver: local
+  sysequi-mongodb-data:
+    external: true

@@ -10,6 +10,11 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const projectRoot = resolve(__dirname, "..", "..");
 const backendPath = join(projectRoot, "Back_SysEqui");
 const frontendPath = join(projectRoot, "Front_SysEqui");
+const dockerCommand =
+  [
+    join(process.env.LOCALAPPDATA || "", "Programs", "DockerDesktop", "resources", "bin", "docker.exe"),
+    join(process.env.ProgramFiles || "C:\\Program Files", "Docker", "Docker", "resources", "bin", "docker.exe"),
+  ].find((candidate) => candidate && existsSync(candidate)) || "docker.exe";
 const localStateDir = join(process.env.LOCALAPPDATA || os.tmpdir(), "SysEqui");
 const logsDir = join(localStateDir, "ControlNodeLogs");
 const statePath = join(localStateDir, "control-node-state.json");
@@ -95,6 +100,14 @@ function run(file, args, options = {}) {
   });
 }
 
+function runDocker(args, options = {}) {
+  return run(
+    dockerCommand,
+    ["--host", "npipe:////./pipe/dockerDesktopLinuxEngine", ...args],
+    options,
+  );
+}
+
 async function commandExists(command) {
   if (command === "npm.cmd" && resolvePackageManager()) return true;
   const result = await run("where.exe", [command], { timeoutMs: 5000 });
@@ -171,7 +184,7 @@ function sleep(ms) {
 }
 
 async function dockerInfo() {
-  const result = await run("docker.exe", ["info"], { timeoutMs: 6000 });
+  const result = await runDocker(["info"], { timeoutMs: 6000 });
   return result.code === 0;
 }
 
@@ -182,7 +195,11 @@ async function ensureDockerDesktop() {
     return;
   }
 
-  const dockerDesktop = join(process.env.ProgramFiles || "C:\\Program Files", "Docker", "Docker", "Docker Desktop.exe");
+  const dockerDesktopCandidates = [
+    join(process.env.LOCALAPPDATA || "", "Programs", "DockerDesktop", "Docker Desktop.exe"),
+    join(process.env.ProgramFiles || "C:\\Program Files", "Docker", "Docker", "Docker Desktop.exe"),
+  ];
+  const dockerDesktop = dockerDesktopCandidates.find((candidate) => candidate && existsSync(candidate)) || "";
   if (!existsSync(dockerDesktop)) throw new Error(`No se encontró Docker Desktop en ${dockerDesktop}`);
 
   log("Abriendo Docker Desktop...");
@@ -201,7 +218,7 @@ async function ensureDockerDesktop() {
 
 async function ensureMongo() {
   log("Verificando contenedor MongoDB...");
-  const inspect = await run("docker.exe", ["inspect", "-f", "{{.State.Running}}", mongoContainerName], { timeoutMs: 10000 });
+  const inspect = await runDocker(["inspect", "-f", "{{.State.Running}}", mongoContainerName], { timeoutMs: 10000 });
   if (inspect.code !== 0) throw new Error(`No existe el contenedor Docker '${mongoContainerName}' o Docker no está disponible.`);
   if (inspect.stdout === "true") {
     log("MongoDB ya estaba activo.");
@@ -209,7 +226,7 @@ async function ensureMongo() {
   }
 
   log("Iniciando MongoDB...");
-  const start = await run("docker.exe", ["start", mongoContainerName], { timeoutMs: 30000 });
+  const start = await runDocker(["start", mongoContainerName], { timeoutMs: 30000 });
   if (start.code !== 0) throw new Error(`No se pudo iniciar MongoDB: ${start.stderr || start.stdout}`);
 }
 
@@ -260,7 +277,9 @@ async function startAll() {
     log("Iniciando SysEqui...");
 
     if (!(await commandExists("npm.cmd"))) throw new Error("No se encontró npm.cmd. Instalá Node.js o agregalo al PATH.");
-    if (!(await commandExists("docker.exe"))) throw new Error("No se encontró docker.exe. Instalá Docker Desktop o agregalo al PATH.");
+    if (!existsSync(dockerCommand) && !(await commandExists("docker.exe"))) {
+      throw new Error("No se encontró docker.exe. Instalá Docker Desktop o agregalo al PATH.");
+    }
 
     await ensureDockerDesktop();
     broadcast("progress", { value: 25 });
@@ -321,10 +340,10 @@ async function stopAll() {
     await stopProjectProcesses(frontendPath);
     broadcast("progress", { value: 65 });
 
-    const inspect = await run("docker.exe", ["inspect", "-f", "{{.State.Running}}", mongoContainerName], { timeoutMs: 8000 });
+    const inspect = await runDocker(["inspect", "-f", "{{.State.Running}}", mongoContainerName], { timeoutMs: 8000 });
     if (inspect.code === 0 && inspect.stdout === "true") {
       log("Deteniendo MongoDB...");
-      await run("docker.exe", ["stop", mongoContainerName], { timeoutMs: 30000 });
+      await runDocker(["stop", mongoContainerName], { timeoutMs: 30000 });
     }
 
     removeState();
@@ -425,7 +444,7 @@ async function waitForPortClosed(port, label, timeoutSeconds) {
 }
 
 async function getStatus() {
-  const databaseInspect = await run("docker.exe", ["inspect", "-f", "{{.State.Running}}", mongoContainerName], {
+  const databaseInspect = await runDocker(["inspect", "-f", "{{.State.Running}}", mongoContainerName], {
     timeoutMs: 2500,
   });
   const database = databaseInspect.code === 0 && databaseInspect.stdout === "true" && (await isPortOpen(ports.database));

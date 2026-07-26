@@ -43,6 +43,8 @@ cronJobs();
 app.use(
   cors({
     origin: [
+      // Desarrollo desde la misma PC
+      "http://localhost:5173",
       // para http
       `http://${FRONTEND_URL}`,
       // para https

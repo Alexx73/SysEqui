@@ -28,6 +28,7 @@ export default function TablaReutilizable({
   sortConfig,
   onSort,
   accionesAdicionales = [],
+  compactaEnMovil = false,
 }) {
   const tieneAcciones =
     mostrarIconoEditar ||
@@ -37,9 +38,16 @@ export default function TablaReutilizable({
     linkMateria ||
     mostrarIconoAprobar ||
     accionesAdicionales.length > 0;
+  const claseResponsiveColumna = (columna) => {
+    if (columna.soloMovil) return "table-cell md:hidden";
+    if (columna.ocultarEnMovil) return "hidden md:table-cell";
+    return "";
+  };
+  const claseIcono = compactaEnMovil ? "h-4 w-4 md:h-5 md:w-5" : "h-5 w-5";
+
   return (
-    <div className="overflow-x-auto">
-      <Table hoverable>
+    <div className={compactaEnMovil ? "w-full overflow-hidden md:overflow-x-auto" : "overflow-x-auto"}>
+      <Table hoverable className={compactaEnMovil ? "w-full table-fixed md:table-auto" : ""}>
         <Table.Head>
           {columnas.map((col, index) => {
             const isSortable = Boolean(col.sortable && onSort);
@@ -47,7 +55,11 @@ export default function TablaReutilizable({
             const sortIndicator = isSorted ? (sortConfig.direction === "asc" ? "▲" : "▼") : "";
 
             return (
-              <Table.HeadCell key={`head-${col.clave || index}`}>
+              <Table.HeadCell
+                key={`head-${col.clave || index}`}
+                className={`${claseResponsiveColumna(col)} ${col.claseMovil || ""} ${
+                  compactaEnMovil ? "px-1 py-2 text-[10px] md:px-6 md:py-3 md:text-xs" : ""
+                }`}>
                 {isSortable ? (
                   <button
                     type="button"
@@ -62,7 +74,14 @@ export default function TablaReutilizable({
               </Table.HeadCell>
             );
           })}
-{tieneAcciones && <Table.HeadCell key="acciones-head">Acciones</Table.HeadCell>}
+          {tieneAcciones && (
+            <Table.HeadCell
+              key="acciones-head"
+              className={compactaEnMovil ? "w-[14%] px-1 py-2 text-[10px] md:w-auto md:px-6 md:py-3 md:text-xs" : ""}>
+              <span className={compactaEnMovil ? "md:hidden" : "hidden"}>Acc.</span>
+              <span className={compactaEnMovil ? "hidden md:inline" : ""}>Acciones</span>
+            </Table.HeadCell>
+          )}
         </Table.Head>
 
         <Table.Body className="divide-y [&>*]:py-">
@@ -70,7 +89,11 @@ export default function TablaReutilizable({
             <Table.Row key={fila._id || fila.id || filaIndex}>
               {columnas.map((col, colIndex) => (
                 <Table.Cell
-                  className="px-5 py-1 text-sm cursor-pointer"
+                  className={`${claseResponsiveColumna(col)} ${col.claseMovil || ""} cursor-pointer ${
+                    compactaEnMovil
+                      ? "break-words px-1 py-2 text-xs leading-tight md:px-5 md:py-1 md:text-sm"
+                      : "px-5 py-1 text-sm"
+                  }`}
                   onDoubleClick={() => onDobleClickFila?.(fila)}
                   key={`cell-${fila._id || fila.id || filaIndex}-${col.clave || colIndex}`}>
                   {col.render ? col.render(fila[col.clave], fila, filaIndex) : fila[col.clave]}
@@ -80,32 +103,35 @@ export default function TablaReutilizable({
 {tieneAcciones && (
                 <Table.Cell
                   key={`acciones-${fila._id || fila.id || filaIndex}`}
-                  className="whitespace-nowrap">
-                  <div className="flex flex-nowrap items-center gap-1">
+                  className={`whitespace-nowrap ${compactaEnMovil ? "px-1 py-2 md:px-6 md:py-4" : ""}`}>
+                  <div
+                    className={`flex flex-nowrap items-center ${
+                      compactaEnMovil ? "justify-center gap-0.5 md:gap-1" : "gap-1"
+                    }`}>
                   {mostrarIconoEditar && (
                     <button
                       onClick={() => onEditar?.(fila)}
-                      className="bg-yellow-400 text-white p-1 rounded"
+                      className={`rounded bg-yellow-400 text-white ${compactaEnMovil ? "p-0.5 md:p-1" : "p-1"}`}
                       title="Editar">
-                      <HiPencil className="w-5 h-5" />
+                      <HiPencil className={claseIcono} />
                     </button>
                   )}
 
                   {mostrarIconoEliminar && (
                     <button
                       onClick={() => onEliminar?.(fila)}
-                      className="bg-red-500 text-white p-1 rounded"
+                      className={`rounded bg-red-500 text-white ${compactaEnMovil ? "p-0.5 md:p-1" : "p-1"}`}
                       title="Eliminar">
-                      <HiTrash className="w-5 h-5" />
+                      <HiTrash className={claseIcono} />
                     </button>
                   )}
 
                   {mostrarIconoAprobar && (
                     <button
                       onClick={() => onAprobar?.(fila)}
-                      className="bg-green-500 text-white p-1 rounded"
+                      className={`rounded bg-green-500 text-white ${compactaEnMovil ? "p-0.5 md:p-1" : "p-1"}`}
                       title="Aprobar">
-                      <HiCheck className="w-5 h-5" />
+                      <HiCheck className={claseIcono} />
                     </button>
                   )}
 

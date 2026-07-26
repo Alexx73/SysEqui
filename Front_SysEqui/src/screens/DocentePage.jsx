@@ -1,40 +1,26 @@
 import React, { useEffect, useState } from "react";
 import { TabItem, Tabs } from "flowbite-react";
 import TablaReutilizable from "../components/Tabla";
-import ModalAlumnos from "../components/ModalAlumnos";
-let tabs = ["1ero A", "1ero B", "2do A", "2do B", "3ero C"];
 import { CursosAPI } from "../api/CursosAPI";
 import { useAlumnosProfesores } from "../utils/useAlumnosProfesores";
 
 import { useUser } from "../context/UserContext";
 import { useCursos } from "../utils/useCursos";
 import { useMaterias } from "../utils/useMaterias";
-import ConfirmModal from "../components/ConfirmModal";
 import ModalNota from "../components/ModalNota";
 import { useToast } from "../components/toastContext";
 
 export default function Docente() {
   const { showToast } = useToast();
-  const [alumnosSeleccionados, setAlumnosSeleccionados] = useState([]);
   const { alumnos, profesores, getAlumnosYProfesores } = useAlumnosProfesores();
   const { materias } = useMaterias();
-  const [materiaSeleccionada, setMateriaSeleccionada] = useState(null);
-  const [modalAbierto, setModalAbierto] = useState(false);
   const [tieneCursos, setTieneCursos] = useState(true);
   const [cursosAsignados, setCursosAsignados] = useState([]);
-  const [alumnoAEditar, setAlumnoAEditar] = useState([]);
-  const [modalConfirmacionAbierto, setModalConfirmacionAbierto] = useState(false);
   const [showNotaModal, setShowNotaModal] = useState(false);
   const [alumnoParaNota, setAlumnoParaNota] = useState(null);
   const [cursoActual, setCursoActual] = useState(null);
 
   const { userData } = useUser();
-
-  const abrirModalConfirmacion = (alumno, nuevaNota) => {
-    setAlumnoEditado(alumno);
-    setNuevaNota(nuevaNota);
-    setModalAbierto(false);
-  };
 
   const buscarCursos = async () => {
     try {
@@ -100,12 +86,6 @@ const cursosConAlumnos = cursosDelProfesor.map((curso) => {
     }
   }, [profesores, alumnos]);
 
-  const modalConfirmacion = (alumno, materia) => {
-    setAlumnoAEditar(alumno);
-    setMateriaSeleccionada(materia);
-    setModalConfirmacionAbierto(true);
-  };
-
   const handleAprobar = (alumno, curso) => {
     setAlumnoParaNota(alumno);
     setCursoActual(curso);
@@ -138,46 +118,32 @@ const handleConfirmarNota = async (nota) => {
                 title={curso.idMateria}
                 datos={curso.alumnos}
                 columnas={[
-                  { clave: "lastname", titulo: "Nombre" },
-                  { clave: "name", titulo: "Nombre" },
-                  { clave: "dni", titulo: "DNI" },
-                  { clave: "email", titulo: "Email" },
+                  {
+                    clave: "alumnoMovil",
+                    titulo: "Alumno",
+                    soloMovil: true,
+                    claseMovil: "w-[45%]",
+                    render: (_valor, alumno) => `${alumno.lastname} ${alumno.name}`,
+                  },
+                  { clave: "lastname", titulo: "Apellido", ocultarEnMovil: true },
+                  { clave: "name", titulo: "Nombre", ocultarEnMovil: true },
+                  { clave: "dni", titulo: "DNI", claseMovil: "w-[27%] whitespace-nowrap md:w-auto" },
+                  { clave: "email", titulo: "Email", ocultarEnMovil: true },
                   {
                     clave: "nota",
                     titulo: "Nota",
-                    editable: true,
-                    onEdit: (alumno, nuevaNota) => abrirModalConfirmacion(alumno, nuevaNota),
+                    claseMovil: "w-[14%] whitespace-nowrap text-center md:w-auto md:text-left",
                   },
                 ]}
-                mostrarIconoEditar={true}
-                mostrarIconoEliminar={true}
                 mostrarIconoAprobar={true}
+                compactaEnMovil={true}
                 onAprobar={(alumno) => handleAprobar(alumno, curso)}
-                onEditar={modalConfirmacion}
-                onEliminar={(alumno) => console.log("Eliminar alumno:", alumno._id, alumno.lastname)}
-                onDobleClickFila={modalConfirmacion}
               />
             </TabItem>
           ))}
         </Tabs>
       )}
 
-      <ModalAlumnos
-        open={modalAbierto}
-        onClose={() => setModalAbierto(false)}
-        alumnos={materiaSeleccionada?.alumno || []}
-        nombreMateria={materiaSeleccionada?.nombre}
-      />
-      <ConfirmModal
-        open={modalConfirmacionAbierto}
-        onClose={() => setModalConfirmacionAbierto(false)}
-        onConfirm={() => {
-          setModalConfirmacionAbierto(false);
-        }}
-        title="Confirmar actualización de nota"
-        message={`¿Estás seguro de que quieres actualizar la nota de ${alumnoAEditar?.lastname} ${alumnoAEditar?.name}  ?`}
-        oneButton={false}
-      />
       <ModalNota
         isOpen={showNotaModal}
         onClose={() => setShowNotaModal(false)}

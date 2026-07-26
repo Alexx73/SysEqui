@@ -1,4 +1,5 @@
 // Library
+import { useState } from "react";
 import { NavLink } from "react-router-dom";
 // Contexts
 import { useUser } from "../context/UserContext";
@@ -12,7 +13,9 @@ import { HiLogin } from "react-icons/hi";
 
 export function MyNavBar() {
   const { userData, openLogoutModal, openProfileDrawer } = useUser();
+  const [navbarVersion, setNavbarVersion] = useState(0);
   const initials = userData.name[0] + userData.lastname[0];
+  const closeMobileMenu = () => setNavbarVersion((version) => version + 1);
 
   const navLinksByRole = {
     admin: [
@@ -37,7 +40,11 @@ export function MyNavBar() {
   const linksToShow = navLinksByRole[userData.role] || [];
 
   return (
-    <Navbar fluid rounded className="bg-gray-900 text-white">
+    <Navbar
+      key={navbarVersion}
+      fluid
+      rounded
+      className="relative bg-gray-900 text-white md:[&>div]:flex-nowrap">
       <div className="order-1 flex shrink-0 md:order-3">
         <Dropdown
           arrowIcon={false}
@@ -72,11 +79,12 @@ export function MyNavBar() {
         <Navbar.Toggle />
       </div>
 
-      <Navbar.Collapse className="order-4 w-full md:order-1 md:w-auto">
+      <Navbar.Collapse className="absolute left-0 right-0 top-full z-50 order-4 w-full rounded-b-lg bg-gray-900 px-4 pb-4 shadow-xl md:static md:order-1 md:!w-auto md:flex-none md:bg-transparent md:p-0 md:shadow-none">
         {linksToShow.map(({ to, label }) => (
           <NavLink
             key={to}
             to={to}
+            onClick={closeMobileMenu}
             className={({ isActive }) =>
               `text-sm px-3 py-2 rounded-md font-medium ${
                 isActive ? "text-white font-bold underline" : "text-white/70 hover:text-white"

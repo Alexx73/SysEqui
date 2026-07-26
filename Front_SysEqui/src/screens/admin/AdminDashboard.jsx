@@ -51,12 +51,12 @@ const PaginationControls = ({ page, pageSize, totalItems, onPageChange, onPageSi
 
   return (
     <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-blue-500/30 bg-blue-500/10 p-3">
-      <label className="flex items-center gap-2 text-sm text-gray-400">
+      <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
         Mostrar
         <select
           value={pageSize}
           onChange={(event) => onPageSizeChange(Number(event.target.value))}
-          className="rounded-md border border-blue-500/50 bg-gray-800 px-2 py-1 text-blue-100 focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400">
+          className="rounded-md border border-blue-300 bg-white px-2 py-1 text-blue-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-blue-500/50 dark:bg-gray-800 dark:text-blue-100 dark:focus:border-blue-400 dark:focus:ring-blue-400">
           {PAGE_SIZE_OPTIONS.map((option) => (
             <option key={option} value={option}>{option}</option>
           ))}
@@ -68,15 +68,15 @@ const PaginationControls = ({ page, pageSize, totalItems, onPageChange, onPageSi
           type="button"
           onClick={() => onPageChange(page - 1)}
           disabled={page === 1}
-          className="rounded-md border border-blue-500/50 bg-blue-600/20 px-3 py-1 text-sm text-blue-100 transition hover:bg-blue-600/40 disabled:cursor-not-allowed disabled:opacity-40">
+          className="rounded-md border border-blue-300 bg-blue-50 px-3 py-1 text-sm text-blue-800 transition hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-blue-500/50 dark:bg-blue-600/20 dark:text-blue-100 dark:hover:bg-blue-600/40">
           Anterior
         </button>
-        <span className="text-sm text-gray-400">Página {page} de {totalPages}</span>
+        <span className="text-sm text-gray-600 dark:text-gray-400">Página {page} de {totalPages}</span>
         <button
           type="button"
           onClick={() => onPageChange(page + 1)}
           disabled={page === totalPages}
-          className="rounded-md border border-blue-500/50 bg-blue-600/20 px-3 py-1 text-sm text-blue-100 transition hover:bg-blue-600/40 disabled:cursor-not-allowed disabled:opacity-40">
+          className="rounded-md border border-blue-300 bg-blue-50 px-3 py-1 text-sm text-blue-800 transition hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-blue-500/50 dark:bg-blue-600/20 dark:text-blue-100 dark:hover:bg-blue-600/40">
           Siguiente
         </button>
       </div>
@@ -169,13 +169,13 @@ const AdminDashboard = () => {
         <p className="mb-2 text-sm font-semibold uppercase tracking-wider text-blue-400">
           Panel de administrador
         </p>
-        <h1 className="text-3xl font-bold text-white">Resumen general</h1>
-        <p className="mt-2 text-gray-400">Información actualizada de los registros activos del sistema.</p>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Resumen general</h1>
+        <p className="mt-2 text-gray-600 dark:text-gray-400">Información actualizada de los registros activos del sistema.</p>
       </div>
 
       {error ? (
         <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-6 text-center" role="alert">
-          <p className="text-red-200">{error}</p>
+          <p className="text-red-700 dark:text-red-200">{error}</p>
           <button
             type="button"
             onClick={loadStats}
@@ -197,7 +197,7 @@ const AdminDashboard = () => {
             return (
               <article
                 key={key}
-                className="rounded-xl border border-gray-700 bg-gray-800 p-5 shadow-lg shadow-black/10">
+                className="rounded-xl border border-gray-200 bg-white p-5 shadow-lg shadow-black/10 dark:border-gray-700 dark:bg-gray-800">
                 <button
                   type="button"
                   onClick={() => toggleCard(key)}
@@ -207,11 +207,11 @@ const AdminDashboard = () => {
                   <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${iconClasses}`}>
                     <Icon className="text-xl" aria-hidden="true" />
                   </span>
-                  <span className="flex-1 font-semibold text-white">
+                  <span className="flex-1 font-semibold text-gray-900 dark:text-white">
                     {label} ({isLoading ? "…" : stats[key]})
                   </span>
                   <HiChevronDown
-                    className={`text-xl text-gray-400 transition-transform duration-300 ${
+                    className={`text-xl text-gray-500 transition-transform duration-300 dark:text-gray-400 ${
                       expandedCards[key] ? "rotate-180" : ""
                     }`}
                     aria-hidden="true"
@@ -226,16 +226,16 @@ const AdminDashboard = () => {
                   <div className="overflow-hidden">
                     {isLoading ? (
                       <div
-                        className="mt-5 h-10 w-20 animate-pulse rounded-md bg-gray-700"
+                        className="mt-5 h-10 w-20 animate-pulse rounded-md bg-gray-200 dark:bg-gray-700"
                         aria-label={`Cargando datos de ${label.toLowerCase()}`}
                       />
                     ) : people ? (
-                      <div className="mt-5 overflow-x-auto border-t border-gray-700 pt-4">
+                      <div className="mt-5 overflow-x-auto border-t border-gray-200 pt-4 dark:border-gray-700">
                         {people.length === 0 ? (
-                          <p className="text-sm text-gray-400">No hay {label.toLowerCase()} activos.</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">No hay {label.toLowerCase()} activos.</p>
                         ) : (
                           <table className="w-full min-w-[420px] text-left text-sm">
-                            <thead className="text-xs uppercase tracking-wide text-gray-400">
+                            <thead className="text-xs uppercase tracking-wide text-gray-600 dark:text-gray-400">
                               <tr>
                                 <th className="w-10 px-3 py-2 text-center font-semibold">#</th>
                                 <th className="px-3 py-2 font-semibold">Apellido</th>
@@ -243,9 +243,9 @@ const AdminDashboard = () => {
                                 <th className="px-3 py-2 font-semibold">DNI</th>
                               </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-700">
+                            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                               {paginatedItems.map((person, index) => (
-                                <tr key={person._id ?? person.dni} className="text-gray-200">
+                                <tr key={person._id ?? person.dni} className="text-gray-700 dark:text-gray-200">
                                   <td className="px-3 py-3 text-center tabular-nums">{startIndex + index + 1}</td>
                                   <td className="px-3 py-3">{person.lastname || "—"}</td>
                                   <td className="px-3 py-3">{person.name || "—"}</td>
@@ -257,21 +257,21 @@ const AdminDashboard = () => {
                         )}
                       </div>
                     ) : key === "courses" ? (
-                      <div className="mt-5 overflow-x-auto border-t border-gray-700 pt-4">
+                      <div className="mt-5 overflow-x-auto border-t border-gray-200 pt-4 dark:border-gray-700">
                         {courseDetails.length === 0 ? (
-                          <p className="text-sm text-gray-400">No hay cursos registrados.</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">No hay cursos registrados.</p>
                         ) : (
                           <table className="w-full min-w-[380px] text-left text-sm">
-                            <thead className="text-xs uppercase tracking-wide text-gray-400">
+                            <thead className="text-xs uppercase tracking-wide text-gray-600 dark:text-gray-400">
                               <tr>
                                 <th className="w-10 px-3 py-2 text-center font-semibold">#</th>
                                 <th className="px-3 py-2 font-semibold">Nombre</th>
                                 <th className="px-3 py-2 text-center font-semibold">Alumnos</th>
                               </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-700">
+                            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                               {paginatedItems.map((course, index) => (
-                                <tr key={course._id} className="text-gray-200">
+                                <tr key={course._id} className="text-gray-700 dark:text-gray-200">
                                   <td className="px-3 py-3 text-center tabular-nums">{startIndex + index + 1}</td>
                                   <td className="px-3 py-3">{course.subjectName}</td>
                                   <td className="px-3 py-3 text-center tabular-nums">{course.studentCount}</td>
@@ -282,12 +282,12 @@ const AdminDashboard = () => {
                         )}
                       </div>
                     ) : key === "subjects" ? (
-                      <div className="mt-5 overflow-x-auto border-t border-gray-700 pt-4">
+                      <div className="mt-5 overflow-x-auto border-t border-gray-200 pt-4 dark:border-gray-700">
                         {subjectDetails.length === 0 ? (
-                          <p className="text-sm text-gray-400">No hay materias activas.</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">No hay materias activas.</p>
                         ) : (
                           <table className="w-full min-w-[480px] text-left text-sm">
-                            <thead className="text-xs uppercase tracking-wide text-gray-400">
+                            <thead className="text-xs uppercase tracking-wide text-gray-600 dark:text-gray-400">
                               <tr>
                                 <th className="w-10 px-3 py-2 text-center font-semibold">#</th>
                                 <th className="px-3 py-2 font-semibold">Nombre</th>
@@ -295,9 +295,9 @@ const AdminDashboard = () => {
                                 <th className="px-3 py-2 font-semibold">Fecha de creación</th>
                               </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-700">
+                            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                               {paginatedItems.map((subject, index) => (
-                                <tr key={subject._id} className="text-gray-200">
+                                <tr key={subject._id} className="text-gray-700 dark:text-gray-200">
                                   <td className="px-3 py-3 text-center tabular-nums">{startIndex + index + 1}</td>
                                   <td className="px-3 py-3">{subject.name || "—"}</td>
                                   <td className="px-3 py-3 text-center tabular-nums">{subject.year || "—"}</td>

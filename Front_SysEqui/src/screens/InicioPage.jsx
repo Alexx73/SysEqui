@@ -12,10 +12,10 @@ import { AvisosAPI } from "../api/AvisosAPI";
 const formatDate = (date) => new Intl.DateTimeFormat("es-AR", { day: "2-digit", month: "2-digit", year: "numeric" }).format(new Date(date));
 
 const cardBackgrounds = [
-  "bg-slate-800/90 dark:bg-slate-800/90",
-  "bg-blue-950/70 dark:bg-blue-950/70",
-  "bg-indigo-950/65 dark:bg-indigo-950/65",
-  "bg-cyan-950/55 dark:bg-cyan-950/55",
+  "bg-slate-100 dark:bg-slate-800/90",
+  "bg-blue-100 dark:bg-blue-950/70",
+  "bg-indigo-100 dark:bg-indigo-950/65",
+  "bg-cyan-100 dark:bg-cyan-950/55",
 ];
 
 const Inicio = () => {
@@ -73,9 +73,9 @@ const Inicio = () => {
       {isAdmin && <AdminSidebar />}
       {isAdmin && <div className="flex w-full max-w-4xl justify-end mt-3"><Button color="blue" onClick={() => openForm(undefined)}><HiPlus className="mr-2 h-5 w-5" />Nuevo aviso</Button></div>}
 
-      {loading ? <div className="mt-10 flex items-center gap-3 text-gray-300"><Spinner /> Cargando avisos...</div> : error ? (
-        <div className="mt-8 text-center"><p className="mb-4 text-red-400">{error}</p><Button color="gray" onClick={loadAvisos}>Reintentar</Button></div>
-      ) : avisos.length === 0 ? <p className="mt-10 text-gray-400">No hay avisos disponibles.</p> : (
+      {loading ? <div className="mt-10 flex items-center gap-3 text-gray-600 dark:text-gray-300"><Spinner /> Cargando avisos...</div> : error ? (
+        <div className="mt-8 text-center"><p className="mb-4 text-red-600 dark:text-red-400">{error}</p><Button color="gray" onClick={loadAvisos}>Reintentar</Button></div>
+      ) : avisos.length === 0 ? <p className="mt-10 text-gray-600 dark:text-gray-400">No hay avisos disponibles.</p> : (
         <div className="grid w-full max-w-4xl grid-cols-1 gap-4 mt-4 md:grid-cols-2">
           {avisos.map((aviso, index) => (
             <Card key={aviso._id} className={`w-full ${cardBackgrounds[index % cardBackgrounds.length]} ${!aviso.activo ? "opacity-55 border-dashed" : ""}`}>
@@ -92,7 +92,7 @@ const Inicio = () => {
                   <p className="whitespace-pre-wrap font-normal text-gray-700 dark:text-gray-300">{aviso.contenido}</p>
                 </div>
               </div>
-              {isAdmin && <div className="flex justify-end gap-2 border-t border-gray-700 pt-3"><Button size="xs" color="blue" onClick={() => openForm(aviso)}><HiPencil className="mr-1 h-4 w-4" />Editar</Button><Button size="xs" color="failure" onClick={() => setDeleting(aviso)}><HiTrash className="mr-1 h-4 w-4" />Eliminar</Button></div>}
+              {isAdmin && <div className="flex justify-end gap-2 border-t border-gray-300 pt-3 dark:border-gray-700"><Button size="xs" color="blue" onClick={() => openForm(aviso)}><HiPencil className="mr-1 h-4 w-4" />Editar</Button><Button size="xs" color="failure" onClick={() => setDeleting(aviso)}><HiTrash className="mr-1 h-4 w-4" />Eliminar</Button></div>}
             </Card>
           ))}
         </div>

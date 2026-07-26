@@ -58,7 +58,7 @@ export default function ToastProvider({ children }) {
           return (
             <Toast
               key={id}
-              className={`w-full min-h-40 border border-blue-400/40 bg-slate-800 px-6 py-6 text-white shadow-xl shadow-black/30 transition-all duration-300 ease-out dark:bg-slate-800 ${
+              className={`min-h-40 w-full border border-blue-200 bg-white px-6 py-6 text-gray-900 shadow-xl shadow-black/10 transition-all duration-300 ease-out dark:border-blue-400/40 dark:bg-slate-800 dark:text-white dark:shadow-black/30 ${
                 leaving ? "-translate-y-full opacity-0" : "translate-y-4 opacity-100 animate-toast-slide-in"
               }`}>
               <div className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${style.iconClass}`}>

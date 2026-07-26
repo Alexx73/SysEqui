@@ -335,7 +335,7 @@ export default function Profesores() {
                 onChange={handleChange}
                 maxLength={8}
                 inputMode="numeric"
-                className={`w-full rounded border text-sm bg-gray-800 text-white focus:border-blue-500 focus:ring-blue-500
+                className={`w-full rounded border bg-white text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-800 dark:text-white
               ${dniError ? "border-red-500 ring-red-500" : "border-gray-600"}`}
                 required
               />
@@ -436,7 +436,7 @@ export default function Profesores() {
       />
       {profesores.length > 5 && (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-blue-500/30 bg-blue-500/10 p-3">
-          <label className="flex items-center gap-2 text-sm text-gray-400">
+          <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
             Mostrar
             <select
               value={pageSize}
@@ -444,7 +444,7 @@ export default function Profesores() {
                 setPageSize(Number(event.target.value));
                 setPage(1);
               }}
-              className="rounded-md border border-blue-500/50 bg-gray-800 px-2 py-1 text-blue-100 focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400">
+              className="rounded-md border border-blue-300 bg-white px-2 py-1 text-blue-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-blue-500/50 dark:bg-gray-800 dark:text-blue-100 dark:focus:border-blue-400 dark:focus:ring-blue-400">
               {PAGE_SIZE_OPTIONS.map((option) => (
                 <option key={option} value={option}>{option}</option>
               ))}
@@ -456,15 +456,15 @@ export default function Profesores() {
               type="button"
               onClick={() => setPage(currentPage - 1)}
               disabled={currentPage === 1}
-              className="rounded-md border border-blue-500/50 bg-blue-600/20 px-3 py-1 text-sm text-blue-100 transition hover:bg-blue-600/40 disabled:cursor-not-allowed disabled:opacity-40">
+              className="rounded-md border border-blue-300 bg-blue-50 px-3 py-1 text-sm text-blue-800 transition hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-blue-500/50 dark:bg-blue-600/20 dark:text-blue-100 dark:hover:bg-blue-600/40">
               Anterior
             </button>
-            <span className="text-sm text-gray-400">Página {currentPage} de {totalPages}</span>
+            <span className="text-sm text-gray-600 dark:text-gray-400">Página {currentPage} de {totalPages}</span>
             <button
               type="button"
               onClick={() => setPage(currentPage + 1)}
               disabled={currentPage === totalPages}
-              className="rounded-md border border-blue-500/50 bg-blue-600/20 px-3 py-1 text-sm text-blue-100 transition hover:bg-blue-600/40 disabled:cursor-not-allowed disabled:opacity-40">
+              className="rounded-md border border-blue-300 bg-blue-50 px-3 py-1 text-sm text-blue-800 transition hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-blue-500/50 dark:bg-blue-600/20 dark:text-blue-100 dark:hover:bg-blue-600/40">
               Siguiente
             </button>
           </div>

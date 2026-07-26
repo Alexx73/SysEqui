@@ -384,22 +384,22 @@ export default function CrearCursoFormModal({ embedded = false, onCursoCreado, o
           <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr_2fr] gap-4 mb-1">
             <div>
               <div>
-                <p className="text-sm text-gray-400">Materia:</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Materia:</p>
                 <p className="font-semibold">{curso.materia || "No seleccionada"}</p>
               </div>
 
               <div>
-                <p className="text-sm text-gray-400 ">Turno:</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Turno:</p>
                 <p className="font-semibold capitalize mb-2">{curso.shift}</p>
               </div>
               {/* Fecha */}
               <div className="">
                 <div>
-                  <p className="text-sm text-gray-400">Fecha de Inicio:</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Fecha de Inicio:</p>
                   <p className="font-semibold">{curso.fechaInicio}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-400">Fecha de Fin:</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Fecha de Fin:</p>
                   <p className="font-semibold">{curso.fechaEstimadaFin}</p>
                 </div>
               </div>

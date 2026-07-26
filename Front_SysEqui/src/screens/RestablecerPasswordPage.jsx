@@ -42,9 +42,9 @@ export default function RestablecerPasswordPage() {
 
   return (
     <div className="container mx-auto px-4 pt-8">
-      <div className="mx-auto max-w-md rounded-xl border border-blue-500/30 bg-slate-800 p-6 shadow-xl">
-        <h1 className="mb-2 text-center text-2xl font-bold text-white">Crear una contraseña nueva</h1>
-        <p className="mb-6 text-center text-sm text-gray-300">El administrador solicitó que actualice su contraseña antes de ingresar.</p>
+      <div className="mx-auto max-w-md rounded-xl border border-blue-200 bg-white p-6 shadow-xl dark:border-blue-500/30 dark:bg-slate-800">
+        <h1 className="mb-2 text-center text-2xl font-bold text-gray-900 dark:text-white">Crear una contraseña nueva</h1>
+        <p className="mb-6 text-center text-sm text-gray-600 dark:text-gray-300">El administrador solicitó que actualice su contraseña antes de ingresar.</p>
         <form onSubmit={submit} className="flex flex-col gap-4">
           <div>
             <Label htmlFor="reset-dni" value="DNI" />
@@ -71,8 +71,8 @@ export default function RestablecerPasswordPage() {
               required
             />
           </div>
-          <p className="text-xs text-gray-400">{passwordRulesText}</p>
-          {error && <p role="alert" className="text-sm text-red-400">{error}</p>}
+          <p className="text-xs text-gray-600 dark:text-gray-400">{passwordRulesText}</p>
+          {error && <p role="alert" className="text-sm text-red-600 dark:text-red-400">{error}</p>}
           <Button type="submit" color="blue" disabled={submitting}>{submitting ? "Guardando..." : "Guardar contraseña"}</Button>
         </form>
       </div>

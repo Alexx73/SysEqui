@@ -215,14 +215,14 @@ export default function AsignarEquivalencia() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
         <Card className="h-full flex flex-col justify-between p-6">
           <form onSubmit={buscarAlumnoPorDni} className="flex flex-col items-center gap-4 h-full justify-center">
-            <label htmlFor="dni" className="text-sm font-medium text-gray-400 self-start">
+            <label htmlFor="dni" className="self-start text-sm font-medium text-gray-600 dark:text-gray-400">
               DNI del Alumno
             </label>
             <input
               id="dni"
               value={dniAlumno}
               onChange={(e) => setDniAlumno(e.target.value)}
-              className="p-2 w-full border dark:bg-slate-600 border-gray-300 rounded-md"
+              className="w-full rounded-md border border-gray-300 bg-white p-2 text-gray-900 placeholder:text-gray-500 dark:border-gray-600 dark:bg-slate-700 dark:text-white dark:placeholder:text-gray-400"
               placeholder="Ingrese el DNI del alumno"
               maxLength={8}
             />
@@ -285,7 +285,7 @@ export default function AsignarEquivalencia() {
           ) : (
             <>
               <h3 className="text-xl font-semibold mb-4">Equivalencias pendientes</h3>
-              <p className="text-gray-400">No tiene equivalencias pendientes.</p>
+              <p className="text-gray-600 dark:text-gray-400">No tiene equivalencias pendientes.</p>
             </>
           )}
         </Card>

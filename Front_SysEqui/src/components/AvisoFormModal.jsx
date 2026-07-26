@@ -33,12 +33,12 @@ export default function AvisoFormModal({ open, aviso, saving, onClose, onSave })
             <div>
               <div className="mb-2 block"><Label htmlFor="aviso-titulo">Título</Label></div>
               <TextInput id="aviso-titulo" maxLength={120} value={form.titulo} onChange={(e) => setForm({ ...form, titulo: e.target.value })} required />
-              <p className="mt-1 text-right text-xs text-gray-400">{form.titulo.length}/120</p>
+              <p className="mt-1 text-right text-xs text-gray-600 dark:text-gray-400">{form.titulo.length}/120</p>
             </div>
             <div>
               <div className="mb-2 block"><Label htmlFor="aviso-contenido">Contenido</Label></div>
               <Textarea id="aviso-contenido" rows={7} maxLength={2000} value={form.contenido} onChange={(e) => setForm({ ...form, contenido: e.target.value })} required />
-              <p className="mt-1 text-right text-xs text-gray-400">{form.contenido.length}/2000</p>
+              <p className="mt-1 text-right text-xs text-gray-600 dark:text-gray-400">{form.contenido.length}/2000</p>
             </div>
             <ToggleSwitch checked={form.activo} label={form.activo ? "Aviso activo" : "Aviso inactivo"} onChange={(activo) => setForm({ ...form, activo })} />
             {error && <p className="text-sm text-red-400">{error}</p>}

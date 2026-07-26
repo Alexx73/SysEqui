@@ -9,7 +9,7 @@ const AdminLayout = () => {
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-900 text-white">
+    <div className="flex min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-white">
       <AdminSidebar />
       <main className="flex-1 p-6 mx-3">
         <Outlet />

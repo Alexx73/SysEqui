@@ -27,14 +27,14 @@ function App() {
 
   if (loading) {
     return (
-      <div className="dark:bg-gray-900 flex flex-col items-center justify-center min-h-screen">
+      <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-white">
         <Flowbite></Flowbite>
       </div>
     );
   }
 
   return (
-    <div className="dark:bg-gray-900 dark:text-white min-h-screen flex flex-col">
+    <div className="flex min-h-screen flex-col bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-white">
       <Flowbite>
         {/* Contenido principal que se expande para ocupar el espacio disponible */}
         <div className="flex-grow">

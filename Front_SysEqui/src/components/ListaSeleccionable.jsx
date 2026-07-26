@@ -99,8 +99,8 @@ export default function ListaSeleccionable({
             <div
               key={el.dni}
               onClick={() => alternarSeleccion(el)}
-              className={`grid grid-cols-[2fr_1fr] px-2 py-1 rounded mb-1 cursor-pointer text-white ${
-                seleccionadosValidos.some((s) => s.dni === el.dni) ? `${color} font-bold` : ""
+              className={`mb-1 grid cursor-pointer grid-cols-[2fr_1fr] rounded px-2 py-1 text-gray-800 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700 ${
+                seleccionadosValidos.some((s) => s.dni === el.dni) ? `${color} font-bold text-white` : ""
               }`}>
               <div className="text-left">{`${el.lastname} ${el.name}`}</div>
               <div className="text-right">{el.dni}</div>

@@ -9,6 +9,28 @@ import ConfirmModal from "../components/ConfirmModal";
 import { HiKey } from "react-icons/hi";
 
 const PAGE_SIZE_OPTIONS = [5, 10, 15, 20];
+const INITIAL_FILTERS = {
+  dni: "",
+  name: "",
+  lastname: "",
+  email: "",
+  cellphone: "",
+};
+
+const FILTER_LABELS = {
+  dni: "DNI",
+  name: "Nombre",
+  lastname: "Apellido",
+  email: "Email",
+  cellphone: "Teléfono",
+};
+
+const normalizeSearchValue = (value) =>
+  String(value ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
 
 const sortAlumnos = (alumnos = [], sortConfig = { key: "lastname", direction: "asc" }) =>
   [...alumnos].sort((a, b) => {
@@ -39,7 +61,7 @@ export default function ListaAlumnos() {
   const [alumnosOriginal, setAlumnoOriginal] = useState([]);
 
   const [noResults, setNoResults] = useState(false);
-  const [query, setQuery] = useState("");
+  const [filters, setFilters] = useState(INITIAL_FILTERS);
 
   const [showEditModal, setShowEditModal] = useState(false);
   const [editAlumno, setEditAlumno] = useState(null);
@@ -74,9 +96,22 @@ export default function ListaAlumnos() {
     cargarAlumnos();
   }, []);
 
-  const filterStudentsByDni = (dniFragment) => {
+  const filterStudents = () => {
+    const activeFilters = Object.entries(filters)
+      .map(([field, value]) => [field, normalizeSearchValue(value)])
+      .filter(([, value]) => value !== "");
+
+    if (activeFilters.length === 0) {
+      setAlumno(alumnosOriginal);
+      setPage(1);
+      setNoResults(alumnosOriginal.length === 0);
+      return;
+    }
+
     const coincidencias = alumnosOriginal.filter((student) =>
-      String(student.dni ?? "").includes(dniFragment),
+      activeFilters.some(([field, value]) =>
+        normalizeSearchValue(student[field]).includes(value),
+      ),
     );
 
     setAlumno(coincidencias);
@@ -85,7 +120,7 @@ export default function ListaAlumnos() {
 
     if (coincidencias.length === 0) {
       showToast({
-        message: `No se encontraron alumnos cuyo DNI contenga: ${dniFragment}`,
+        message: "No se encontraron alumnos que coincidan con los filtros.",
         type: "warning",
       });
     }
@@ -149,31 +184,36 @@ export default function ListaAlumnos() {
         confirmColor="warning"
       />
       <Card className="mb-4">
-        <p className="text-gray-700 dark:text-gray-300"></p>
         <form
-          className="flex flex-col md:flex-row gap-4 mb-2 "
+          className="grid grid-cols-1 items-end gap-3 sm:grid-cols-2 lg:grid-cols-5"
           onSubmit={(e) => {
             e.preventDefault();
-            if (query.trim() !== "") {
-              filterStudentsByDni(query.trim());
-            }
+            filterStudents();
           }}>
-          <input
-            type="text"
-            placeholder="Buscar Alumno por DNI"
-            className="w-full rounded border border-gray-300 bg-white p-2 text-gray-900 placeholder:text-gray-500 dark:border-gray-600 dark:bg-slate-700 dark:text-white dark:placeholder:text-gray-400 md:w-1/2"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-          <div className="block md:flex gap-2">
-            <button className="rounded bg-blue-500 px-4 text-white" type="submit">
-              Enviar
+          {Object.keys(INITIAL_FILTERS).map((field) => (
+            <label key={field} className="flex min-w-0 flex-col gap-1 text-sm font-medium text-gray-700 dark:text-gray-300">
+              {FILTER_LABELS[field]}
+              <input
+                type="text"
+                name={field}
+                placeholder={`Buscar por ${FILTER_LABELS[field].toLowerCase()}`}
+                className="w-full rounded border border-gray-300 bg-white p-2 text-gray-900 placeholder:text-gray-500 dark:border-gray-600 dark:bg-slate-700 dark:text-white dark:placeholder:text-gray-400"
+                value={filters[field]}
+                onChange={(event) =>
+                  setFilters((current) => ({ ...current, [field]: event.target.value }))
+                }
+              />
+            </label>
+          ))}
+          <div className="flex gap-2 sm:col-span-2 lg:col-span-5 lg:justify-end">
+            <button className="rounded bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600" type="submit">
+              Buscar
             </button>
             <button
-              className="rounded bg-red-500 px-4 text-white"
+              className="rounded bg-red-500 px-4 py-2 font-medium text-white hover:bg-red-600"
               type="button"
               onClick={() => {
-                setQuery("");
+                setFilters(INITIAL_FILTERS);
                 setNoResults(false);
                 setAlumno(alumnosOriginal);
                 setPage(1);

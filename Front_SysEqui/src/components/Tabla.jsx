@@ -29,6 +29,7 @@ export default function TablaReutilizable({
   onSort,
   accionesAdicionales = [],
   compactaEnMovil = false,
+  pieTabla = null,
 }) {
   const tieneAcciones =
     mostrarIconoEditar ||
@@ -172,6 +173,17 @@ export default function TablaReutilizable({
             </Table.Row>
           ))}
         </Table.Body>
+        {pieTabla && (
+          <tfoot>
+            <tr>
+              <td
+                colSpan={columnas.length + (tieneAcciones ? 1 : 0)}
+                className="border-t-4 border-gray-200 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-800 md:p-3">
+                {pieTabla}
+              </td>
+            </tr>
+          </tfoot>
+        )}
       </Table>
     </div>
   );

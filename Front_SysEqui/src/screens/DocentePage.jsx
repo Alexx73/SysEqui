@@ -119,25 +119,50 @@ const handleConfirmarNota = async (nota) => {
                 datos={curso.alumnos}
                 columnas={[
                   {
+                    clave: "numeroFila",
+                    titulo: "#",
+                    claseMovil: "w-[8%] whitespace-nowrap text-center md:w-auto",
+                    render: (_valor, _alumno, filaIndex) => filaIndex + 1,
+                  },
+                  {
                     clave: "alumnoMovil",
                     titulo: "Alumno",
                     soloMovil: true,
-                    claseMovil: "w-[45%]",
+                    claseMovil: "w-[34%]",
                     render: (_valor, alumno) => `${alumno.lastname} ${alumno.name}`,
                   },
                   { clave: "lastname", titulo: "Apellido", ocultarEnMovil: true },
                   { clave: "name", titulo: "Nombre", ocultarEnMovil: true },
-                  { clave: "dni", titulo: "DNI", claseMovil: "w-[27%] whitespace-nowrap md:w-auto" },
+                  { clave: "dni", titulo: "DNI", claseMovil: "w-[29%] whitespace-nowrap md:w-auto" },
                   { clave: "email", titulo: "Email", ocultarEnMovil: true },
                   {
                     clave: "nota",
                     titulo: "Nota",
-                    claseMovil: "w-[14%] whitespace-nowrap text-center md:w-auto md:text-left",
+                    claseMovil: "w-[15%] whitespace-nowrap text-center md:w-auto md:text-left",
                   },
                 ]}
                 mostrarIconoAprobar={true}
                 compactaEnMovil={true}
                 onAprobar={(alumno) => handleAprobar(alumno, curso)}
+                pieTabla={
+                  <div className="grid grid-cols-3 overflow-hidden rounded-lg text-center shadow">
+                    <div className="min-w-0 bg-green-100 px-1 py-2 text-green-900 dark:bg-green-900 dark:text-white md:px-3">
+                      <span className="whitespace-nowrap text-xs font-bold sm:text-sm">
+                        Aprobados: {curso.alumnos.filter((alumno) => Number(alumno.nota) >= 6).length}
+                      </span>
+                    </div>
+                    <div className="min-w-0 bg-red-100 px-1 py-2 text-red-900 dark:bg-red-900 dark:text-white md:px-3">
+                      <span className="whitespace-nowrap text-xs font-bold sm:text-sm">
+                        No aprobados: {curso.alumnos.filter((alumno) => Number(alumno.nota) < 6).length}
+                      </span>
+                    </div>
+                    <div className="min-w-0 bg-blue-100 px-1 py-2 text-blue-900 dark:bg-blue-900 dark:text-white md:px-3">
+                      <span className="whitespace-nowrap text-xs font-bold sm:text-sm">
+                        Total alumnos: {curso.alumnos.length}
+                      </span>
+                    </div>
+                  </div>
+                }
               />
             </TabItem>
           ))}

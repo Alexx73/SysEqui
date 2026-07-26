@@ -74,22 +74,20 @@ export default function ListaAlumnos() {
     cargarAlumnos();
   }, []);
 
-  const getStudentByDni = async (dni) => {
-    try {
-      const res = await UsersAPI.getUsersByDni(dni);
-      if (res.data?.user) {
-        setAlumno([res.data.user]);
-        setPage(1);
-        setNoResults(false);
-      } else {
-        showToast({ message: `No se encontraron resultados para el DNI: ${dni}`, type: "warning" });
-        setAlumno([]);
-        setNoResults(true);
-      }
-    } catch (error) {
-      showToast({ message: error?.message || "Error al obtener usuario por DNI.", type: "error" });
-      setAlumno([]);
-      setNoResults(true);
+  const filterStudentsByDni = (dniFragment) => {
+    const coincidencias = alumnosOriginal.filter((student) =>
+      String(student.dni ?? "").includes(dniFragment),
+    );
+
+    setAlumno(coincidencias);
+    setPage(1);
+    setNoResults(coincidencias.length === 0);
+
+    if (coincidencias.length === 0) {
+      showToast({
+        message: `No se encontraron alumnos cuyo DNI contenga: ${dniFragment}`,
+        type: "warning",
+      });
     }
   };
 
@@ -157,7 +155,7 @@ export default function ListaAlumnos() {
           onSubmit={(e) => {
             e.preventDefault();
             if (query.trim() !== "") {
-              getStudentByDni(query.trim());
+              filterStudentsByDni(query.trim());
             }
           }}>
           <input

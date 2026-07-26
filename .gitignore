@@ -12,6 +12,7 @@ build/
 .DS_Store
 
 *.log
+local-presentacion/
 npm-debug.log*
 yarn-debug.log*
 pnpm-debug.log*

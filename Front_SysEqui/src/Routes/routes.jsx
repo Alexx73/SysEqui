@@ -15,6 +15,7 @@ import ListaAlumnos from "../screens/ListaAlumnosPage.jsx";
 import MateriasAprobadas from "../screens/MateriasAprobadasPage.jsx";
 import Unauthorized from "../screens/UnauthorizedPage.jsx";
 import RestablecerPasswordPage from "../screens/RestablecerPasswordPage.jsx";
+import AccesoPresentacionPage from "../screens/AccesoPresentacionPage.jsx";
 // Contexts
 import { useUser } from "../context/UserContext"; // Importar el contexto
 // API
@@ -48,6 +49,7 @@ const Routing = () => {
           <Route path="/registro" element={<RegistroPage />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
           <Route path="/restablecer-password" element={<RestablecerPasswordPage />} />
+          <Route path="/acceso-presentacion" element={<AccesoPresentacionPage />} />
         </Route>
         {/* Acceso compartido: student + admin */}
         <Route element={<ProtectedRoutes allowRoles={["student", "preceptor", "professor", "admin"]} />}>

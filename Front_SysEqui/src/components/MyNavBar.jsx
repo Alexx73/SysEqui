@@ -13,9 +13,14 @@ import { HiLogin } from "react-icons/hi";
 
 export function MyNavBar() {
   const { userData, openLogoutModal, openProfileDrawer } = useUser();
-  const [navbarVersion, setNavbarVersion] = useState(0);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [profileMenuVersion, setProfileMenuVersion] = useState(0);
   const initials = userData.name[0] + userData.lastname[0];
-  const closeMobileMenu = () => setNavbarVersion((version) => version + 1);
+  const closeMobileMenu = () => setMobileMenuOpen(false);
+  const toggleMobileMenu = () => {
+    setProfileMenuVersion((version) => version + 1);
+    setMobileMenuOpen((open) => !open);
+  };
 
   const navLinksByRole = {
     admin: [
@@ -40,13 +45,10 @@ export function MyNavBar() {
   const linksToShow = navLinksByRole[userData.role] || [];
 
   return (
-    <Navbar
-      key={navbarVersion}
-      fluid
-      rounded
-      className="relative bg-gray-900 text-white md:[&>div]:flex-nowrap">
-      <div className="order-1 flex shrink-0 md:order-3">
+    <Navbar fluid rounded className="relative bg-gray-900 text-white md:[&>div]:flex-nowrap">
+      <div className="order-3 flex shrink-0" onClick={closeMobileMenu}>
         <Dropdown
+          key={profileMenuVersion}
           arrowIcon={false}
           inline
           label={<Avatar alt="Configuración del usuario" placeholderInitials={initials} rounded />}>
@@ -75,16 +77,19 @@ export function MyNavBar() {
         </span>
       </div>
 
-      <div className="order-3 flex shrink-0 md:hidden">
-        <Navbar.Toggle />
+      <div className="order-1 flex shrink-0 md:hidden">
+        <Navbar.Toggle
+          onClick={toggleMobileMenu}
+          aria-expanded={mobileMenuOpen}
+          aria-label={mobileMenuOpen ? "Cerrar menú de navegación" : "Abrir menú de navegación"}
+        />
       </div>
 
-      <Navbar.Collapse className="absolute left-0 right-0 top-full z-50 order-4 w-full rounded-b-lg bg-gray-900 px-4 pb-4 shadow-xl md:static md:order-1 md:!w-auto md:flex-none md:bg-transparent md:p-0 md:shadow-none">
+      <Navbar.Collapse className="order-4 hidden md:static md:order-1 md:!block md:!w-auto md:flex-none md:bg-transparent md:p-0 md:shadow-none">
         {linksToShow.map(({ to, label }) => (
           <NavLink
             key={to}
             to={to}
-            onClick={closeMobileMenu}
             className={({ isActive }) =>
               `text-sm px-3 py-2 rounded-md font-medium ${
                 isActive ? "text-white font-bold underline" : "text-white/70 hover:text-white"
@@ -94,6 +99,39 @@ export function MyNavBar() {
           </NavLink>
         ))}
       </Navbar.Collapse>
+
+      {mobileMenuOpen && (
+        <div className="absolute left-0 right-0 top-full z-50 order-4 w-full rounded-b-lg bg-gray-900 px-4 pb-4 shadow-xl md:hidden">
+          <ul className="mt-4 flex flex-col">
+            {linksToShow.map(({ to, label }) => (
+              <li key={to}>
+                <NavLink
+                  to={to}
+                  onClick={closeMobileMenu}
+                  className={({ isActive }) =>
+                    `block rounded-md px-3 py-2 text-sm font-medium ${
+                      isActive ? "font-bold text-white underline" : "text-white/70 hover:text-white"
+                    }`
+                  }>
+                  {label}
+                </NavLink>
+              </li>
+            ))}
+            <li className="mt-2 border-t border-white/20 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  closeMobileMenu();
+                  openLogoutModal();
+                }}
+                className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm font-medium text-red-400 hover:bg-white/10 hover:text-red-300">
+                <HiLogin className="h-5 w-5" aria-hidden="true" />
+                Cerrar sesión
+              </button>
+            </li>
+          </ul>
+        </div>
+      )}
     </Navbar>
   );
 }

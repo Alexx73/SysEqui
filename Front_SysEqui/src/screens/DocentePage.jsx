@@ -8,6 +8,7 @@ import { useUser } from "../context/UserContext";
 import { useCursos } from "../utils/useCursos";
 import { useMaterias } from "../utils/useMaterias";
 import ModalNota from "../components/ModalNota";
+import ConfirmModal from "../components/ConfirmModal";
 import { useToast } from "../components/toastContext";
 
 export default function Docente() {
@@ -19,6 +20,8 @@ export default function Docente() {
   const [showNotaModal, setShowNotaModal] = useState(false);
   const [alumnoParaNota, setAlumnoParaNota] = useState(null);
   const [cursoActual, setCursoActual] = useState(null);
+  const [notaPendiente, setNotaPendiente] = useState(null);
+  const [guardandoNota, setGuardandoNota] = useState(false);
 
   const { userData } = useUser();
 
@@ -92,20 +95,39 @@ const cursosConAlumnos = cursosDelProfesor.map((curso) => {
     setShowNotaModal(true);
   };
 
-const handleConfirmarNota = async (nota) => {
+  const guardarNota = async (nota) => {
+    if (guardandoNota) return;
+    setGuardandoNota(true);
     const res = await CursosAPI.assignNote(cursoActual._id, {
       nota,
       idAlumno: alumnoParaNota._id,
     });
+    setGuardandoNota(false);
 
-    if (res.status !== 200) {
-      showToast({ message: res.data?.error || "Error al guardar nota.", type: "error" });
+    if (res?.status !== 200) {
+      showToast({ message: res?.data?.error || "Error al guardar nota.", type: "error" });
       return;
     }
 
     showToast({ message: "Nota guardada correctamente.", type: "success" });
     setShowNotaModal(false);
-    buscarCursos();
+    setNotaPendiente(null);
+    await buscarCursos();
+  };
+
+  const handleConfirmarNota = (nota) => {
+    const notaActual = Number(alumnoParaNota?.nota ?? 0);
+    if (notaActual === nota) {
+      showToast({ message: "La nota ingresada es igual a la nota actual.", type: "info" });
+      setShowNotaModal(false);
+      return;
+    }
+    if (notaActual > 0) {
+      setShowNotaModal(false);
+      setNotaPendiente(nota);
+      return;
+    }
+    guardarNota(nota);
   };
 
   return (
@@ -173,8 +195,18 @@ const handleConfirmarNota = async (nota) => {
         isOpen={showNotaModal}
         onClose={() => setShowNotaModal(false)}
         onConfirm={handleConfirmarNota}
-        title="Cargar Nota"
+        title={Number(alumnoParaNota?.nota ?? 0) > 0 ? "Cambiar nota" : "Cargar nota"}
         nombreAlumno={alumnoParaNota ? `${alumnoParaNota.lastname} ${alumnoParaNota.name}` : ""}
+        initialValue={Number(alumnoParaNota?.nota ?? 0) > 0 ? alumnoParaNota.nota : ""}
+      />
+      <ConfirmModal
+        open={notaPendiente !== null}
+        onClose={() => setNotaPendiente(null)}
+        onConfirm={() => guardarNota(notaPendiente)}
+        title="Confirmar cambio de nota"
+        message={`¿Cambiar la nota de ${alumnoParaNota?.lastname || ""} ${alumnoParaNota?.name || ""} de ${alumnoParaNota?.nota ?? 0} a ${notaPendiente ?? ""}?`}
+        confirmLabel={guardandoNota ? "Guardando..." : "Confirmar cambio"}
+        confirmColor="warning"
       />
     </div>
   );

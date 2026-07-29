@@ -70,7 +70,7 @@ const cursosController = {
   assignNote: async (req, res) => {
     try {
       // Llamamos al servicio de usuarios para buscar las equivalencias por profesor
-      const curso = await cursosService.assignNote(req.params.id, req.body, req.user.role);
+      const curso = await cursosService.assignNote(req.params.id, req.body, req.user);
       // Devolvemos el curso actualizado
       res.status(200).json({ curso });
     } catch (error) {

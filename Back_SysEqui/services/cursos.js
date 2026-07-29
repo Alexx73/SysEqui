@@ -4,6 +4,7 @@ import Cursos from "../models/cursos.js";
 import Materias from "../models/materias.js";
 import EquivalenciaCompleted from "../models/equivalencias-completadas.js";
 import EquivalenciaPendiente from "../models/equivalencias-pendientes.js";
+import UsersProfile from "../models/usersProfile.js";
 
 const cursosService = {
   // Función para crear un curso
@@ -113,67 +114,102 @@ const cursosService = {
     }
     return cursos;
   },
-  assignNote: async (id, body, role) => {
+  assignNote: async (id, body, requestUser) => {
     if (body.idAlumno === undefined || body.idAlumno === null || body.idAlumno === "" || body.nota === undefined || body.nota === null || body.nota === "") {
       throw {
         status: 400,
         message: "Los campos idAlumno y nota son obligatorios",
       };
     }
-    if (body.nota < 0 || body.nota > 10) {
+    if (!Number.isInteger(body.nota) || body.nota < 1 || body.nota > 10) {
       throw {
         status: 400,
-        message: "La nota debe estar entre 0 y 10",
+        message: "La nota debe ser un número entero entre 1 y 10",
       };
     }
     if (!mongoose.Types.ObjectId.isValid(body.idAlumno)) {
       throw { status: 400, message: "El idAlumno no es un ObjectId válido" };
     }
-    const curso = await Cursos.findOne({ _id: id });
-    if (!curso) {
-      throw {
-        status: 404,
-        message: "No se encontró el curso",
-      };
+
+    if (!requestUser || !["admin", "professor"].includes(requestUser.role)) {
+      throw { status: 403, message: "No tienes permisos para asignar o modificar notas" };
     }
-    // Buscamos el alumno dentro del array de alumnos. Se contempla _id como respaldo
-    // para cursos antiguos guardados antes de normalizar el formato { idAlumno, nota }.
-    const alumno = curso.alumnos.find((a) => {
-      const alumnoId = a.idAlumno || a._id;
-      return alumnoId?.toString() === body.idAlumno.toString();
-    });
-    // Si no encontramos al alumno, lanzamos un error
-    if (!alumno) {
-      throw {
-        status: 404,
-        message: "No se encontró el alumno en este curso",
-      };
-    }
-    if (alumno.nota > 0 && role !== "admin") {
-      throw {
-        status: 403,
-        message: "No puedes cambiar la nota de un alumno que ya tiene una nota asignada",
-      };
-    }
-    // Actualizamos la nota
-    const alumnoId = alumno.idAlumno || alumno._id;
-    alumno.nota = body.nota;
-    if (body.nota >= 6) {
-      const materia = await Materias.findById(curso.idMateria);
-      await EquivalenciaCompleted.create({
+
+    const useTransaction = process.env.ATOMIC_BDD === "true";
+    const session = useTransaction ? await mongoose.startSession() : null;
+    if (session) session.startTransaction();
+
+    try {
+      const queryOptions = session ? { session } : {};
+      const curso = await Cursos.findById(id, null, queryOptions);
+      if (!curso) {
+        throw { status: 404, message: "No se encontró el curso" };
+      }
+
+      if (requestUser.role === "professor") {
+        const profesor = await UsersProfile.findOne(
+          { dni: requestUser.dni, role: "professor", isActive: true },
+          null,
+          queryOptions,
+        );
+        const profesorAsignado =
+          profesor &&
+          curso.docentesEncargados.some(
+            (docenteId) => docenteId.toString() === profesor._id.toString(),
+          );
+        if (!profesorAsignado) {
+          throw { status: 403, message: "No tienes permisos para modificar notas de este curso" };
+        }
+      }
+
+      // Se contempla _id como respaldo para cursos antiguos.
+      const alumno = curso.alumnos.find((item) => {
+        const alumnoId = item.idAlumno || item._id;
+        return alumnoId?.toString() === body.idAlumno.toString();
+      });
+      if (!alumno) {
+        throw { status: 404, message: "No se encontró el alumno en este curso" };
+      }
+
+      const materia = await Materias.findById(curso.idMateria, null, queryOptions);
+      if (!materia) {
+        throw { status: 404, message: "No se encontró la materia del curso" };
+      }
+
+      const alumnoId = alumno.idAlumno || alumno._id;
+      const equivalenciaKey = {
         userId: alumnoId,
         name: materia.name,
         year: materia.year,
-        note: body.nota,
-      });
-      await EquivalenciaPendiente.deleteOne({
-        userId: alumnoId,
-        name: materia.name,
-        year: materia.year
-      });
+      };
+
+      if (body.nota >= 6) {
+        await EquivalenciaCompleted.findOneAndUpdate(
+          equivalenciaKey,
+          { $set: { note: body.nota }, $setOnInsert: equivalenciaKey },
+          { ...queryOptions, new: true, upsert: true },
+        );
+        await EquivalenciaPendiente.deleteMany(equivalenciaKey, queryOptions);
+      } else {
+        await EquivalenciaCompleted.deleteMany(equivalenciaKey, queryOptions);
+        await EquivalenciaPendiente.findOneAndUpdate(
+          equivalenciaKey,
+          { $setOnInsert: equivalenciaKey },
+          { ...queryOptions, new: true, upsert: true },
+        );
+      }
+
+      alumno.nota = body.nota;
+      await curso.save(queryOptions);
+
+      if (session) await session.commitTransaction();
+      return curso;
+    } catch (error) {
+      if (session) await session.abortTransaction();
+      throw error;
+    } finally {
+      if (session) await session.endSession();
     }
-    await curso.save();
-    return curso;
   },
 };
 

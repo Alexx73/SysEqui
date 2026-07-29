@@ -10,6 +10,13 @@ export default function ModalNota({ isOpen, onClose, onConfirm, title = "Cargar 
   const btnCancelarRef = useRef(null);
 
   useEffect(() => {
+    if (isOpen) {
+      setNota(initialValue);
+      setBotonActivo("confirmar");
+    }
+  }, [initialValue, isOpen]);
+
+  useEffect(() => {
     if (!isOpen) return;
 
     const handleKeyDown = (e) => {

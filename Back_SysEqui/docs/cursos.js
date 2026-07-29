@@ -287,10 +287,12 @@
  * /cursos/assignNote/{id}:
  *   patch:
  *     tags: [cursos]
- *     summary: Asigna o actualiza la nota de un alumno en un curso
+ *     summary: Asigna o corrige la nota de un alumno en un curso
  *     description: >
  *       Asigna una nota entera (1–10) a un alumno inscripto en el curso.
- *       Si el alumno ya tiene nota, solo un usuario con rol `admin` puede modificarla (403 para otros roles).
+ *       Un administrador puede modificar cualquier curso. Un profesor solo puede
+ *       asignar o corregir notas de los cursos donde figura como docente encargado.
+ *       Las equivalencias pendientes y completadas se sincronizan sin crear nuevos duplicados.
  *     parameters:
  *       - in: path
  *         name: id
@@ -321,7 +323,7 @@
  *                 example: 8
  *     responses:
  *       200:
- *         description: Nota asignada. Si nota >= 6 se genera una equivalencia completada automáticamente.
+ *         description: Nota asignada o corregida y equivalencias sincronizadas correctamente.
  *         content:
  *           application/json:
  *             schema:
@@ -330,7 +332,7 @@
  *                 curso:
  *                   type: object
  *       400:
- *         description: Campos faltantes, nota fuera de rango (0–10), nota no entera, o idAlumno inválido
+ *         description: Campos faltantes, nota fuera de rango (1–10), nota no entera, o idAlumno inválido
  *         content:
  *           application/json:
  *             schema:
@@ -340,7 +342,7 @@
  *                   type: string
  *                   example: "El idAlumno no es un ObjectId válido"
  *       403:
- *         description: El alumno ya tiene una nota y el solicitante no es administrador
+ *         description: Rol no autorizado o profesor no asignado al curso
  *         content:
  *           application/json:
  *             schema:
@@ -348,7 +350,7 @@
  *               properties:
  *                 error:
  *                   type: string
- *                   example: "No puedes cambiar la nota de un alumno que ya tiene una nota asignada"
+ *                   example: "No tienes permisos para modificar notas de este curso"
  *       404:
  *         description: Curso o alumno no encontrado en el curso
  *       500:
